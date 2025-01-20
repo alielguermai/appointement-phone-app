@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Appointment demo',
       home: LandingPage(),
       onGenerateRoute: onGenerate,
-      initialRoute: AppRoutes.landingPageRoute,
+      initialRoute: AppRoutes.homePageRoute,
     );
   }
 }
