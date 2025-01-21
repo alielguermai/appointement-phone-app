@@ -1,4 +1,5 @@
 import 'package:appointement_phone_app/core/widgets/search_button.dart';
+import 'package:appointement_phone_app/features/contacts/widgets/all_contacts.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/recent_contacts.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,9 @@ class _ContactViewState extends State<ContactView> {
           children: [
             SearchButton(),
             RecentContacts(),
+            Expanded(
+              child: AllContacts(),
+            )
           ],
         ),
       ),

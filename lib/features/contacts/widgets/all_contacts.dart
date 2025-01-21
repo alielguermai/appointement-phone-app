@@ -1,6 +1,6 @@
-import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 
 class AllContacts extends StatefulWidget {
   const AllContacts({super.key});
@@ -12,58 +12,107 @@ class AllContacts extends StatefulWidget {
 class _AllContactsState extends State<AllContacts> {
   List<Contact> contacts = [];
 
+  Future<void> getPermissionAndFetchContacts() async {
+    var result = await Permission.contacts.request();
+
+    if (result.isGranted) {
+      fetchContacts();
+    } else if (result.isDenied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contacts permission is required to proceed.')),
+      );
+    } else if (result.isPermanentlyDenied) {
+      openAppSettings();
+    }
+  }
+
+  Future<void> fetchContacts() async {
+    if (await FlutterContacts.requestPermission()) {
+      List<Contact> fetchedContacts = await FlutterContacts.getContacts(
+        withProperties: true,
+        withPhoto: true,
+      );
+      setState(() {
+        contacts = fetchedContacts;
+      });
+    } else {
+      print('Permission Denied For FlutterContacts');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contacts permission denied. Please enable it in settings.')),
+      );
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
-    getAllContacts();
-  }
-
-  Future<void> getAllContacts() async {
-    // Request permission to access contacts
-    PermissionStatus permissionStatus = await Permission.contacts.request();
-
-    if (permissionStatus.isGranted) {
-      try {
-        List<Contact> _contacts =
-        await ContactsService.getContacts(withThumbnails: false);
-
-        // Print all contacts in the console
-        for (var contact in _contacts) {
-          print('Name: ${contact.displayName}');
-          print('Phone: ${contact.phones?.map((e) => e.value).join(', ')}');
-          print('Email: ${contact.emails?.map((e) => e.value).join(', ')}');
-          print('---');
-        }
-
-        // Update state to store the contacts
-        setState(() {
-          contacts = _contacts;
-        });
-      } catch (e) {
-        print('Error fetching contacts: $e');
-      }
-    } else {
-      print('Permission to access contacts was denied.');
-    }
+    getPermissionAndFetchContacts();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('All Contacts')),
-      body: contacts.isEmpty
-          ? const Center(child: Text('No contacts found or permission denied.'))
-          : ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, index) {
-          final contact = contacts[index];
-          return ListTile(
-            title: Text(contact.displayName ?? 'No Name'),
-            subtitle: Text(
-              contact.phones?.map((e) => e.value).join(', ') ?? 'No Phone',
-            ),
-          );
-        },
+    return Container(
+      margin: EdgeInsets.all(16),
+      alignment: Alignment.topLeft,
+      child: contacts.isEmpty
+          ? Center(
+        child: Text(
+          'No contacts found or permission denied.',
+          style: TextStyle(color: Colors.white),
+        ),
+      )
+          : Expanded( // Use Expanded to avoid overflow
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: contacts.map((contact) {
+              return Container(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    contact.photo != null
+                        ? CircleAvatar(
+                      backgroundImage: MemoryImage(contact.photo!),
+                      radius: 24,
+                    )
+                        : CircleAvatar(
+                      radius: 24,
+                      child: Text(
+                        contact.displayName.isNotEmpty
+                            ? contact.displayName[0].toUpperCase()
+                            : '',
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          contact.displayName,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          contact.phones.isNotEmpty
+                              ? contact.phones.first.number
+                              : 'No phone number',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }
