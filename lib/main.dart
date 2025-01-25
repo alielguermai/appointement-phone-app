@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       darkTheme: TAppTheme.darkTheme,
       home: LandingPage(),
       onGenerateRoute: onGenerate,
-      initialRoute: AppRoutes.homePageRoute,
+      initialRoute: AppRoutes.loginPageRoute,
     );
   }
 }
