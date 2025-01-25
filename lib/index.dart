@@ -1,6 +1,8 @@
 import 'package:appointement_phone_app/features/appointments/views/calendar_view.dart';
 import 'package:appointement_phone_app/features/contacts/views/contact_view.dart';
+import 'package:appointement_phone_app/features/contacts/widgets/favorite_contacts.dart';
 import 'package:appointement_phone_app/features/notifications/views/notification_view.dart';
+import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,6 +16,7 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
   static const List<Widget> _pages =[
+    FavoriteContacts(),
     CalendarView(),
     ContactView(),
     NotificationView(),
@@ -21,12 +24,16 @@ class _HomePageState extends State<HomePage> {
 
   final List<BottomNavigationBarItem> _navBarItems = const [
     BottomNavigationBarItem(
+      icon: Icon(Icons.star),
+      label: 'Favorite',
+    ),
+    BottomNavigationBarItem(
       icon: Icon(Icons.calendar_month),
       label: 'Calendar',
     ),
 
     BottomNavigationBarItem(
-      icon: Icon(Icons.perm_contact_cal_outlined),
+      icon: Icon(Icons.people_rounded),
       label: 'Contacts',
     ),
 
@@ -47,13 +54,17 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
         items: _navBarItems,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
-        showUnselectedLabels: false,
+        showUnselectedLabels: true,
         showSelectedLabels: true,
+        selectedIconTheme: IconThemeData(size: 26),
+        unselectedIconTheme: IconThemeData(size: 26),
+        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       ),
     );
   }

@@ -29,9 +29,9 @@ class _RecentContactsState extends State<RecentContacts> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Recent Contacts',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.headlineLarge,
           ),
           const SizedBox(height: 10),
           SingleChildScrollView(

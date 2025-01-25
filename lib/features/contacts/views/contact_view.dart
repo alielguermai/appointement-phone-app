@@ -1,6 +1,7 @@
 import 'package:appointement_phone_app/core/widgets/search_button.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/all_contacts.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/recent_contacts.dart';
+import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class ContactView extends StatefulWidget {
@@ -14,8 +15,11 @@ class _ContactViewState extends State<ContactView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Contact'),),
-      backgroundColor: Colors.black54,
+      appBar: AppBar(
+        title: Text('Contact'),
+        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
+      ),
+      backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       body: Container(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,

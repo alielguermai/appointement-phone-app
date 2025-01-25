@@ -8,6 +8,7 @@ class FavoriteContacts extends StatefulWidget {
 }
 
 class _FavoriteContactsState extends State<FavoriteContacts> {
+
   @override
   Widget build(BuildContext context) {
     return const Placeholder();

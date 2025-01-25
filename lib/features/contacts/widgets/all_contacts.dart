@@ -9,8 +9,9 @@ class AllContacts extends StatefulWidget {
   State<AllContacts> createState() => _AllContactsState();
 }
 
+List<Contact> contacts = [];
+
 class _AllContactsState extends State<AllContacts> {
-  List<Contact> contacts = [];
 
   Future<void> getPermissionAndFetchContacts() async {
     var result = await Permission.contacts.request();
@@ -90,20 +91,13 @@ class _AllContactsState extends State<AllContacts> {
                       children: [
                         Text(
                           contact.displayName,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
                         ),
                         Text(
                           contact.phones.isNotEmpty
                               ? contact.phones.first.number
                               : 'No phone number',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
                         ),
                       ],
                     ),
@@ -115,5 +109,25 @@ class _AllContactsState extends State<AllContacts> {
         ),
       ),
     );
+  }
+}
+
+
+
+// A class for favorit contact
+class FavoriteContact extends StatefulWidget {
+  const FavoriteContact({super.key});
+
+  @override
+  State<FavoriteContact> createState() => _FavoriteContactState();
+}
+
+class _FavoriteContactState extends State<FavoriteContact> {
+  List<Contact> favoriteContacts = [];
+  // i want a function that show all the
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }

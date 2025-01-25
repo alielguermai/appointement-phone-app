@@ -1,5 +1,6 @@
 import 'package:appointement_phone_app/core/widgets/table_calendar.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/day_appointments.dart';
+import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class CalendarView extends StatefulWidget {
@@ -16,8 +17,11 @@ class _CalendarViewState extends State<CalendarView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendar')),
-      backgroundColor: Colors.grey[300],
+      appBar: AppBar(
+        title: const Text('Calendar'),
+        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
+      ),
+      backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
