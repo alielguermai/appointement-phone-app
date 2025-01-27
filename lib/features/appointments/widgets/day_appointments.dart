@@ -1,5 +1,6 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class DayAppointments extends StatefulWidget {
@@ -10,18 +11,45 @@ class DayAppointments extends StatefulWidget {
 }
 
 class _DayAppointmentsState extends State<DayAppointments> {
+  late Future<List<Map<String, dynamic>>> appointments;
+
+  // Fetch appointments
+  Future<List<Map<String, dynamic>>> fetchAppointments() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final querySnapshot = await firestore.collection("appointments").get();
+
+      return querySnapshot.docs.map((doc) {
+        return {
+          "id": doc.id,
+          ...doc.data() as Map<String, dynamic>,
+        };
+      }).toList();
+    } catch (e) {
+      print("Error fetching appointments: $e");
+      return [];
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Call fetchAppointments every time the view is shown
+    appointments = fetchAppointments();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Today\'s Appointments',
                   style: TextStyle(
                     fontSize: 24,
@@ -29,47 +57,79 @@ class _DayAppointmentsState extends State<DayAppointments> {
                   ),
                 ),
                 IconButton(
-                    onPressed: (){
-                      Navigator.of(context).pushNamed(AppRoutes.newAppointment);
-                    }, 
-                    icon: Icon(Icons.add)
-                )
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(AppRoutes.newAppointment);
+                  },
+                  icon: const Icon(Icons.add),
+                ),
               ],
             ),
-            const SizedBox(height: 16), // Add space between header and container
-            Container(
-              width: double.infinity, // Make the container take full width
-              decoration: TAppTheme.lightBoxShadow,
-              margin: const EdgeInsets.symmetric(vertical: 8), // Margin around the container
-              padding: const EdgeInsets.all(16), // Padding inside the container
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
-                children: [
-                  Text(
-                    'Team Meeting',
-                    style: TextStyle(
-                      fontSize: 16, // Slightly larger font size
-                      fontWeight: FontWeight.bold, // Bold for title
+            const SizedBox(height: 16),
+
+            // FutureBuilder to fetch and display appointments
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: appointments,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      "Error: ${snapshot.error}",
+                      style: const TextStyle(color: Colors.red),
                     ),
-                  ),
-                  const SizedBox(height: 8), // Space between title and time
-                  Text(
-                    '2:00 PM - 3:00 PM',
-                    style: TextStyle(
-                      fontSize: 14, // Normal font size
-                      color: Colors.grey[600], // Subtle text color
-                    ),
-                  ),
-                  const SizedBox(height: 4), // Space between time and location
-                  Text(
-                    'Conference Room A',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600], // Subtle text color
-                    ),
-                  ),
-                ],
-              ),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text("No appointments found."),
+                  );
+                }
+
+                final appointments = snapshot.data!;
+
+                return Column(
+                  children: appointments.map((appointment) {
+                    return Container(
+                      width: double.infinity,
+                      decoration: TAppTheme.lightBoxShadow,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            appointment["meetingType"] ?? "Unknown",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "${appointment["time"] ?? "No Time"}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            appointment["location"] ?? "No Location",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
         ),

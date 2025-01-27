@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       darkTheme: TAppTheme.darkTheme,
       home: LandingPage(),
       onGenerateRoute: onGenerate,
-      initialRoute: AppRoutes.loginPageRoute,
+      initialRoute: AppRoutes.homePageRoute,
     );
   }
 }

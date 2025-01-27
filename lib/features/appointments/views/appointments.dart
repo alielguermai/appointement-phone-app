@@ -1,6 +1,7 @@
 import 'package:appointement_phone_app/features/appointments/widgets/custom_button.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_text_field.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
@@ -139,6 +140,39 @@ class _Appointments extends State<Appointments> {
     );
   }
 
+
+  void saveAppointmentToFirestore() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      // data to save
+      final appointmentData = {
+        "meetingType": selectedMeetingType,
+        "contact": selectedContact,
+        "date": selectedDate,
+        "time": selectedTime,
+        "location": selectedLocationType,
+        "category": selectedCategorieType,
+        "createdAt": FieldValue.serverTimestamp(),
+      };
+
+      await firestore.collection("appointments").add(appointmentData);
+
+      // success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Appointment created successfully!")),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      // error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Faild to create appointment: $e")),
+      );
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,21 +224,18 @@ class _Appointments extends State<Appointments> {
                     onTap: _selectContact,
                     readOnly: true,
                   ),
-
                   CustomTextField(
                     label: "Date",
                     onTap: _selectDate,
                     readOnly: true,
                     hintText: selectedDate.isEmpty ? "Select Date" : selectedDate,
                   ),
-
                   CustomTextField(
                     label: "Time",
                     onTap: _selectTime,
                     readOnly:
                     true, hintText: selectedTime.isEmpty ? "Select Time" : selectedTime,
                   ),
-
                   CustomTextField(
                     label: "Location",
                     onTap: () {
@@ -217,7 +248,6 @@ class _Appointments extends State<Appointments> {
                     readOnly:
                     true, hintText: selectedLocationType,
                   ),
-
                   CustomTextField(
                     label: "Category",
                     onTap: () {
@@ -238,8 +268,15 @@ class _Appointments extends State<Appointments> {
                       child: CustomButton(
                         label: "Create Appointment",
                         onPressed: () {
-                          print("Selected Contact: $selectedContact");
-                          print("Selected Meeting Type: $selectedMeetingType");
+                          if (selectedContact.isNotEmpty &&
+                              selectedDate.isNotEmpty &&
+                              selectedTime.isNotEmpty) {
+                            saveAppointmentToFirestore();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Please fill all fields")),
+                            );
+                          }
                         },
                       ),
                     ),
