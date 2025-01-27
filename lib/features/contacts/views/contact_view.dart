@@ -1,6 +1,5 @@
 import 'package:appointement_phone_app/core/widgets/search_button.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/all_contacts.dart';
-import 'package:appointement_phone_app/features/contacts/widgets/recent_contacts.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -24,8 +23,11 @@ class _ContactViewState extends State<ContactView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            SearchButton(),
-            RecentContacts(),
+            Container(
+              margin: EdgeInsets.all(10),
+              decoration: TAppTheme.lightBoxShadow,
+              child: SearchButton(),
+            ),
             Expanded(
               child: AllContacts(),
             )

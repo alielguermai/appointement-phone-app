@@ -1,3 +1,5 @@
+import 'package:appointement_phone_app/config/routes/routes.dart';
+import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class DayAppointments extends StatefulWidget {
@@ -16,27 +18,28 @@ class _DayAppointmentsState extends State<DayAppointments> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
           children: [
-            Text(
-              'Today\'s Appointments',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Today\'s Appointments',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                    onPressed: (){
+                      Navigator.of(context).pushNamed(AppRoutes.newAppointment);
+                    }, 
+                    icon: Icon(Icons.add)
+                )
+              ],
             ),
             const SizedBox(height: 16), // Add space between header and container
             Container(
               width: double.infinity, // Make the container take full width
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12), // Rounded corners
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1), // Subtle shadow
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
+              decoration: TAppTheme.lightBoxShadow,
               margin: const EdgeInsets.symmetric(vertical: 8), // Margin around the container
               padding: const EdgeInsets.all(16), // Padding inside the container
               child: Column(

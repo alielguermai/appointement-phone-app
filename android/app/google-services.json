@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "807669941804",
+    "project_id": "appoint-cf2f7",
+    "storage_bucket": "appoint-cf2f7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:807669941804:android:0f81f259874e4a3f7c7389",
+        "android_client_info": {
+          "package_name": "com.example.appointement_phone_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADgEeoTKISuhxH0QWM4nrmEksghK4F3dU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

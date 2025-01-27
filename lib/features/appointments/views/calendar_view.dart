@@ -21,7 +21,6 @@ class _CalendarViewState extends State<CalendarView> {
         title: const Text('Calendar'),
         backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       ),
-      backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

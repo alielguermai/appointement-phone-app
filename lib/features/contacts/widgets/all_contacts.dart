@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 class AllContacts extends StatefulWidget {
   const AllContacts({super.key});
@@ -12,7 +13,6 @@ class AllContacts extends StatefulWidget {
 List<Contact> contacts = [];
 
 class _AllContactsState extends State<AllContacts> {
-
   Future<void> getPermissionAndFetchContacts() async {
     var result = await Permission.contacts.request();
 
@@ -44,6 +44,20 @@ class _AllContactsState extends State<AllContacts> {
     }
   }
 
+  _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      print('Could not launch phone dialer for $phoneNumber');
+    }
+  }
+
+
+
 
   @override
   void initState() {
@@ -63,7 +77,7 @@ class _AllContactsState extends State<AllContacts> {
           style: TextStyle(color: Colors.white),
         ),
       )
-          : Expanded( // Use Expanded to avoid overflow
+          : Expanded(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,15 +105,20 @@ class _AllContactsState extends State<AllContacts> {
                       children: [
                         Text(
                           contact.displayName,
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         Text(
                           contact.phones.isNotEmpty
                               ? contact.phones.first.number
                               : 'No phone number',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
+                    ),
+                    Spacer(), // Push the button to the end
+                    IconButton(
+                      onPressed: contact.phones.isNotEmpty ? () => _makePhoneCall(contact.phones.first.number) : null,
+                      icon: Icon(Icons.phone),
                     ),
                   ],
                 ),
@@ -109,25 +128,5 @@ class _AllContactsState extends State<AllContacts> {
         ),
       ),
     );
-  }
-}
-
-
-
-// A class for favorit contact
-class FavoriteContact extends StatefulWidget {
-  const FavoriteContact({super.key});
-
-  @override
-  State<FavoriteContact> createState() => _FavoriteContactState();
-}
-
-class _FavoriteContactState extends State<FavoriteContact> {
-  List<Contact> favoriteContacts = [];
-  // i want a function that show all the
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }

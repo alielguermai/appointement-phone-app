@@ -1,4 +1,5 @@
 import 'package:appointement_phone_app/features/appointments/views/calendar_view.dart';
+import 'package:appointement_phone_app/features/auth/views/profile_view.dart';
 import 'package:appointement_phone_app/features/contacts/views/contact_view.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/favorite_contacts.dart';
 import 'package:appointement_phone_app/features/notifications/views/notification_view.dart';
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
     CalendarView(),
     ContactView(),
     NotificationView(),
+    ProfileView(),
   ];
 
   final List<BottomNavigationBarItem> _navBarItems = const [
@@ -41,6 +43,11 @@ class _HomePageState extends State<HomePage> {
       icon: Icon(Icons.notification_important_rounded),
       label: 'Notification',
     ),
+
+    BottomNavigationBarItem(
+      icon: Icon(Icons.person),
+      label: 'Profile',
+    )
   ];
 
   void _onItemTapped(int index){

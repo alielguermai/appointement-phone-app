@@ -1,4 +1,6 @@
+import 'package:call_log/call_log.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class RecentContacts extends StatefulWidget {
   const RecentContacts({super.key});
@@ -8,19 +10,31 @@ class RecentContacts extends StatefulWidget {
 }
 
 class _RecentContactsState extends State<RecentContacts> {
-  final List<Map<String, String>> contacts = [
-    {"name": "Ahmed", "initials": "AH"},
-    {"name": "Fatima", "initials": "FA"},
-    {"name": "Youssef", "initials": "YO"},
-    {"name": "Sara", "initials": "SA"},
-    {"name": "Khadija", "initials": "KH"},
-    {"name": "Mohammed", "initials": "MO"},
-    {"name": "Rachid", "initials": "RA"},
-    {"name": "Amina", "initials": "AM"},
-    {"name": "Omar", "initials": "OM"},
-    {"name": "Zineb", "initials": "ZI"},
-  ];
+  List<CallLogEntry> recentCalls = []; // Holds recent call log entries
 
+  @override
+  void initState() {
+    super.initState();
+    fetchRecentCalls(); // Fetch call logs when the widget is initialized
+  }
+
+  Future<void> fetchRecentCalls() async {
+    // Request permission to access call logs
+    var status = await Permission.phone.request();
+
+    if (status.isGranted) {
+      // Fetch call logs
+      Iterable<CallLogEntry> entries = await CallLog.get();
+
+      setState(() {
+        recentCalls = entries.toList(); // Store call logs in the state
+      });
+    } else if (status.isDenied) {
+      print("Call log permission denied");
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +51,9 @@ class _RecentContactsState extends State<RecentContacts> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: contacts.map((contact) {
+              children: recentCalls.map((call) {
+                // Map each call log entry to a UI element
+                String nameOrNumber = call.name ?? call.number ?? "Unknown";
                 return Column(
                   children: [
                     Container(
@@ -46,13 +62,14 @@ class _RecentContactsState extends State<RecentContacts> {
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors
-                            .primaries[contacts.indexOf(contact) %
-                            Colors.primaries.length], // Random color
+                        color: Colors.primaries[
+                        recentCalls.indexOf(call) % Colors.primaries.length],
                       ),
                       child: Center(
                         child: Text(
-                          contact["initials"]!,
+                          nameOrNumber.isNotEmpty
+                              ? nameOrNumber[0].toUpperCase() // First letter
+                              : '?',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -63,8 +80,9 @@ class _RecentContactsState extends State<RecentContacts> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      contact["name"]!,
+                      nameOrNumber,
                       style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 );

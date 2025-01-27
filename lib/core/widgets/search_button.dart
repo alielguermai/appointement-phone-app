@@ -12,7 +12,7 @@ class _SearchButtonState extends State<SearchButton> {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         child: TextField(
           decoration: InputDecoration(
             hintText: "Search contacts...", // This will be styled by the theme

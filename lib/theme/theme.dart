@@ -1,3 +1,4 @@
+import 'package:appointement_phone_app/theme/box_shadow.dart';
 import 'package:appointement_phone_app/theme/search_theme.dart';
 import 'package:appointement_phone_app/theme/textButton_theme.dart';
 import 'package:appointement_phone_app/theme/text_theme.dart';
@@ -15,7 +16,7 @@ class TAppTheme {
     inputDecorationTheme: TSearchTheme.lightTheme,
     textButtonTheme: TextButtonThemeData(
       style: TTextButtonTheme.lightTheme,
-    )
+    ),
   );
 
   static ThemeData darkTheme = ThemeData(
@@ -26,4 +27,7 @@ class TAppTheme {
     textTheme: TTextTheme.darkTheme,
     inputDecorationTheme: TSearchTheme.darkTheme,
   );
+
+  static BoxDecoration lightBoxShadow = TBoxShadow.lightTheme;
+  static BoxDecoration darkBoxShadow = TBoxShadow.darkTheme;
 }
