@@ -9,7 +9,7 @@ class MyTableCalendar extends StatefulWidget {
 }
 
 class _MyTableCalendarState extends State<MyTableCalendar> {
-  DateTime _focusedDay = DateTime(2024, 11, 1);
+  DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
   @override

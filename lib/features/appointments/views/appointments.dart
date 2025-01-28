@@ -1,9 +1,11 @@
+import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_button.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_text_field.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Appointments extends StatefulWidget {
   const Appointments({super.key});
@@ -144,6 +146,12 @@ class _Appointments extends State<Appointments> {
   void saveAppointmentToFirestore() async {
     try {
       final firestore = FirebaseFirestore.instance;
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You must be logged in to create an appointment.')));
+        return;
+      }
 
       // data to save
       final appointmentData = {
@@ -154,6 +162,7 @@ class _Appointments extends State<Appointments> {
         "location": selectedLocationType,
         "category": selectedCategorieType,
         "createdAt": FieldValue.serverTimestamp(),
+        "userId": user.uid,
       };
 
       await firestore.collection("appointments").add(appointmentData);
@@ -162,11 +171,11 @@ class _Appointments extends State<Appointments> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Appointment created successfully!")),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushNamed(AppRoutes.homePageRoute);
     } catch (e) {
       // error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Faild to create appointment: $e")),
+        SnackBar(content: Text("Failed to create appointment: $e")),
       );
     }
   }

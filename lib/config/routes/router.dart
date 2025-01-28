@@ -3,22 +3,47 @@ import 'package:appointement_phone_app/features/appointments/views/appointments.
 import 'package:appointement_phone_app/features/auth/views/login_view.dart';
 import 'package:appointement_phone_app/features/auth/views/verification_view.dart';
 import 'package:appointement_phone_app/features/landingPage/landing_page.dart';
+import 'package:appointement_phone_app/features/settings/views/settings_view.dart';
 import 'package:appointement_phone_app/index.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-Route<dynamic> onGenerate(RouteSettings settings){
-  switch(settings.name){
-    case AppRoutes.newAppointment:
-      return CupertinoPageRoute(builder: (_) => const Appointments());
-    case AppRoutes.otpPageRoute:
-      return CupertinoPageRoute(builder: (_) => const OTPVerificationPage());
-    case AppRoutes.loginPageRoute:
-      return CupertinoPageRoute(builder: (_) => const LoginView());
-    case AppRoutes.homePageRoute:
-      return CupertinoPageRoute(builder: (_) => const HomePage());
+Route<dynamic> onGenerate(RouteSettings settings) {
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  switch (settings.name) {
+  // Public routes (accessible only if the user is not logged in)
     case AppRoutes.landingPageRoute:
-      return CupertinoPageRoute(builder: (_) => const LandingPage());
+      return CupertinoPageRoute(
+        builder: (_) => user == null ? const LandingPage() : const HomePage(),
+      );
+    case AppRoutes.loginPageRoute:
+      return CupertinoPageRoute(
+        builder: (_) => user == null ? LoginView() : const HomePage(),
+      );
+    case AppRoutes.otpPageRoute:
+      return CupertinoPageRoute(
+        builder: (_) => user == null ? const OTPVerificationPage() : const HomePage(),
+      );
+
+  // Private routes (accessible only if the user is logged in)
+    case AppRoutes.homePageRoute:
+      return CupertinoPageRoute(
+        builder: (_) => user != null ? const HomePage() : const LandingPage(),
+      );
+    case AppRoutes.newAppointment:
+      return CupertinoPageRoute(
+        builder: (_) => user != null ? const Appointments() : const LandingPage(),
+      );
+    case AppRoutes.settings:
+      return CupertinoPageRoute(
+        builder: (_) => user != null ? const SettingsView() : const LandingPage(),
+      );
+
+  // Default route (landing page)
     default:
-      return CupertinoPageRoute(builder: (_) => const LandingPage());
+      return CupertinoPageRoute(
+        builder: (_) => const LandingPage(),
+      );
   }
 }

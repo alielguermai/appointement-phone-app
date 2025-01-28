@@ -4,4 +4,5 @@ class AppRoutes {
   static const String homePageRoute = '/homepage';
   static const String otpPageRoute = '/OTP';
   static const String newAppointment ='/appointment/new';
+  static const String settings = '/settings';
 }
