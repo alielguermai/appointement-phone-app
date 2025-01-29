@@ -13,7 +13,6 @@ class DayAppointments extends StatefulWidget {
 class _DayAppointmentsState extends State<DayAppointments> {
   late Future<List<Map<String, dynamic>>> appointments;
 
-  // Fetch appointments
   Future<List<Map<String, dynamic>>> fetchAppointments() async {
     try {
       final firestore = FirebaseFirestore.instance;
@@ -34,7 +33,6 @@ class _DayAppointmentsState extends State<DayAppointments> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Call fetchAppointments every time the view is shown
     appointments = fetchAppointments();
   }
 
@@ -66,7 +64,6 @@ class _DayAppointmentsState extends State<DayAppointments> {
             ),
             const SizedBox(height: 16),
 
-            // FutureBuilder to fetch and display appointments
             FutureBuilder<List<Map<String, dynamic>>>(
               future: appointments,
               builder: (context, snapshot) {
@@ -102,7 +99,7 @@ class _DayAppointmentsState extends State<DayAppointments> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            appointment["meetingType"] ?? "Unknown",
+                            appointment["title"] ?? "Unknown",
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -110,15 +107,21 @@ class _DayAppointmentsState extends State<DayAppointments> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "${appointment["time"] ?? "No Time"}",
+                            "Time: ${appointment["time"] ?? "No Time"}",
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
                           ),
-                          const SizedBox(height: 4),
                           Text(
-                            appointment["location"] ?? "No Location",
+                            "Location: ${appointment["location"] ?? "No Location"}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            "Reminder: ${appointment["reminderPreference"] ?? "No Reminder"}",
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],

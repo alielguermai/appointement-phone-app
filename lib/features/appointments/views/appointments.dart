@@ -1,11 +1,13 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_button.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_text_field.dart';
+import 'package:appointement_phone_app/features/reminder/widgets/noti_service.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class Appointments extends StatefulWidget {
   const Appointments({super.key});
@@ -36,12 +38,19 @@ class _Appointments extends State<Appointments> {
     "Internship"
   ];
 
+  final List<String> reminderOptions = [
+    '1 Day Before',
+    '2 Hours Before',
+    '30 Minutes Before',
+  ];
+
   String selectedMeetingType = "Business Meeting";
   String selectedLocationType = "Office building";
   String selectedCategorieType = "Business";
   String selectedContact = ""; // Store selected contact
   String selectedDate = ""; // Store the selected date
   String selectedTime = ""; // Store selected time
+  String? _reminderPreference;
 
   // Function to show the time picker
   Future<void> _selectTime() async {
@@ -155,6 +164,7 @@ class _Appointments extends State<Appointments> {
 
       // data to save
       final appointmentData = {
+        "title": selectedMeetingType, // Add this line
         "meetingType": selectedMeetingType,
         "contact": selectedContact,
         "date": selectedDate,
@@ -163,6 +173,7 @@ class _Appointments extends State<Appointments> {
         "category": selectedCategorieType,
         "createdAt": FieldValue.serverTimestamp(),
         "userId": user.uid,
+        'reminderPreference': _reminderPreference,
       };
 
       await firestore.collection("appointments").add(appointmentData);
@@ -178,6 +189,36 @@ class _Appointments extends State<Appointments> {
         SnackBar(content: Text("Failed to create appointment: $e")),
       );
     }
+  }
+
+
+  void _scheduleReminder(Map<String, dynamic> appointment) {
+    final notiService = NotiService();
+    final dateTimeString = "${appointment['date']} ${appointment['time']}";
+    final appointmentTime = DateFormat("yyyy-MM-dd h:mm a").parse(dateTimeString);
+
+    final reminderPreference = appointment['reminderPreference'];
+    Duration reminderDuration;
+    switch (reminderPreference) {
+      case '1 Day Before':
+        reminderDuration = const Duration(days: 1);
+        break;
+      case '2 Hours Before':
+        reminderDuration = const Duration(hours: 2);
+        break;
+      case '30 Minutes Before':
+        reminderDuration = const Duration(minutes: 30); // Fixed typo (was 3 minutes)
+        break;
+      default:
+        reminderDuration = Duration.zero;
+    }
+    final reminderTime = appointmentTime.subtract(reminderDuration);
+
+    notiService.scheduleNotification(
+      title: 'Reminder: ${appointment['title']}',
+      body: 'Your appointment is coming up at ${appointment['time']}',
+      reminderTime: reminderTime, // Pass the DateTime object here
+    );
   }
 
 
@@ -268,6 +309,27 @@ class _Appointments extends State<Appointments> {
                     },
                     readOnly:
                     true, hintText: selectedCategorieType,
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: _reminderPreference,
+                    items: reminderOptions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _reminderPreference = value;
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: 'Reminder Preference'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a reminder preference';
+                      }
+                      return null;
+                    },
                   ),
                   const Spacer(),
                   Padding(

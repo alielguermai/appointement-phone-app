@@ -36,11 +36,21 @@ class _ReminderViewState extends State<ReminderView> {
   void _scheduleNotification() {
     if (_selectedTime == null) return;
 
+    // Create a DateTime object using the selected time and today's date
+    final now = DateTime.now();
+    final scheduledDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      _selectedTime!.hour,
+      _selectedTime!.minute,
+    );
+
+    // Call the scheduleNotification method with the DateTime object
     notiService.scheduleNotification(
       title: 'Scheduled Notification',
       body: 'This is a scheduled notification!',
-      hour: _selectedTime!.hour,
-      minute: _selectedTime!.minute,
+      reminderTime: scheduledDateTime,
     );
 
     ScaffoldMessenger.of(context).showSnackBar(

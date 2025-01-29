@@ -3,8 +3,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:workmanager/workmanager.dart';
+
 
 class NotiService {
+  static final NotiService _instance = NotiService._internal();
+  factory NotiService() => _instance;
+  NotiService._internal();
   final FlutterLocalNotificationsPlugin notificationPlugin =
   FlutterLocalNotificationsPlugin();
 
@@ -89,37 +94,21 @@ class NotiService {
     int id = 1,
     required String title,
     required String body,
-    required int hour,
-    required int minute,
+    required DateTime reminderTime, // This should be a DateTime object
   }) async {
-    // Get current date and time
     final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime.from(reminderTime, tz.local);
 
-    // Create a date/time for today at the specified hour/min
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-
-    // If the scheduled time is in the past, schedule it for the next day
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    // Debugging: Print the scheduled time
-    print('Scheduled time: $scheduledDate');
-
-    // Schedule the notification
     await notificationPlugin.zonedSchedule(
       id,
       title,
       body,
       scheduledDate,
-      notificationDetails(), // Use the correct notification details
+      notificationDetails(),
       uiLocalNotificationDateInterpretation:
       UILocalNotificationDateInterpretation.absoluteTime,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,

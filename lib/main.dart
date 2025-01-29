@@ -7,10 +7,34 @@ import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:workmanager/workmanager.dart';
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    // This is where you handle the background task
+    final notiService = NotiService();
+    await notiService.initNotification();
+
+    // Construct a DateTime object from the input data
+    final reminderTime = DateTime.now().add(Duration(
+      hours: inputData!['hour'],
+      minutes: inputData['minute'],
+    ));
+
+    await notiService.scheduleNotification(
+      title: inputData['title'],
+      body: inputData['body'],
+      reminderTime: reminderTime, // Pass the DateTime object here
+    );
+    return Future.value(true);
+  });
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   NotiService().initNotification();
+  final notiService = NotiService();
+  await notiService.initNotification();
 
   try {
     await Firebase.initializeApp(
@@ -20,6 +44,12 @@ void main() async {
   } catch (e) {
     print('Error initializing Firebase: $e');
   }
+
+  // Initialize Workmanager
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: true,
+  );
 
   runApp(const MyApp());
 }
