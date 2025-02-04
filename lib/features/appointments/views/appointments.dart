@@ -195,7 +195,7 @@ class _Appointments extends State<Appointments> {
           title: 'Appointment created successfully for $selectedMeetingType',
           body: 'with $selectedContact'
       );
-      Navigator.of(context).pushNamed(AppRoutes.homePageRoute);
+      Navigator.of(context).pop();
     } catch (e) {
       // error message
       ScaffoldMessenger.of(context).showSnackBar(

@@ -3,43 +3,59 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class TodayAppointments extends StatefulWidget {
-  const TodayAppointments({super.key});
+class NextDaysAppointments extends StatefulWidget {
+  final int numberOfDays; // Number of future days to fetch appointments for
+
+  const NextDaysAppointments({super.key, this.numberOfDays = 3});
 
   @override
-  State<TodayAppointments> createState() => _TodayAppointmentsState();
+  State<NextDaysAppointments> createState() => _NextDaysAppointmentsState();
 }
 
-class _TodayAppointmentsState extends State<TodayAppointments> {
-  late Future<List<Map<String, dynamic>>> appointments;
-
-  Future<List<Map<String, dynamic>>> fetchAppointments() async {
-    try {
-      final firestore = FirebaseFirestore.instance;
-      final today = DateFormat('yyyy-M-d').format(DateTime.now()); // Updated format
-
-      final querySnapshot = await firestore
-          .collection("appointments")
-          .where("date", isEqualTo: today) // Ensure "date" matches the field name in Firestore
-          .limit(5)
-          .get();
-
-      return querySnapshot.docs.map((doc) {
-        return {
-          "id": doc.id,
-          ...doc.data() as Map<String, dynamic>,
-        };
-      }).toList();
-    } catch (e) {
-      print("Error fetching appointments: $e");
-      return [];
-    }
-  }
+class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
+  late Future<Map<String, List<Map<String, dynamic>>>> appointmentsByDay;
+  late final List<String> formattedDates;
+  late final List<String> dbDates;
 
   @override
   void initState() {
     super.initState();
-    appointments = fetchAppointments(); // Fetch appointments in initState
+    formattedDates = [];
+    dbDates = [];
+
+    for (int i = 1; i <= widget.numberOfDays; i++) {
+      DateTime futureDate = DateTime.now().add(Duration(days: i));
+      formattedDates.add(DateFormat('E d').format(futureDate)); // Display format
+      dbDates.add(DateFormat('yyyy-M-d').format(futureDate)); // DB format
+    }
+
+    appointmentsByDay = fetchAppointmentsForMultipleDays();
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      Map<String, List<Map<String, dynamic>>> results = {};
+
+      for (int i = 0; i < dbDates.length; i++) {
+        final querySnapshot = await firestore
+            .collection("appointments")
+            .where("date", isEqualTo: dbDates[i]) // Fetch appointments for each day
+            .get();
+
+        results[formattedDates[i]] = querySnapshot.docs.map((doc) {
+          return {
+            "id": doc.id,
+            ...doc.data() as Map<String, dynamic>,
+          };
+        }).toList();
+      }
+
+      return results;
+    } catch (e) {
+      print("Error fetching appointments: $e");
+      return {};
+    }
   }
 
   Color getStatusColor(String status) {
@@ -60,50 +76,49 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(left: 10),
-                  child: Text(
-                  'Today\'s Appointments',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  ),
+        child: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
+          future: appointmentsByDay,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  "Error: ${snapshot.error}",
+                  style: const TextStyle(color: Colors.red),
                 ),
-                )
-              ],
-            ),
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: appointments,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              );
+            }
 
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      "Error: ${snapshot.error}",
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text("No appointments found."),
+              );
+            }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text("No appointments found."),
-                  );
-                }
+            final appointmentsByDay = snapshot.data!;
 
-                final appointments = snapshot.data!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: appointmentsByDay.entries.map((entry) {
+                final date = entry.key;
+                final appointments = entry.value;
 
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      margin: const EdgeInsets.only(left: 10, top: 15),
+                      child: Text(
+                        date, // Display formatted date
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                     ...appointments.map((appointment) {
                       final appointmentColor = getStatusColor(appointment["status"]);
                       return Container(
@@ -142,9 +157,7 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
+                                      const SizedBox(width: 10),
                                       GestureDetector(
                                         onTap: () {
                                           Navigator.pushNamed(
@@ -155,16 +168,13 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                         },
                                         child: const Icon(Icons.edit, size: 15, color: Colors.white),
                                       ),
-                                      const SizedBox(
-                                        width:10,
-                                      ),
+                                      const SizedBox(width: 10),
                                       GestureDetector(
-                                        onTap: (){},
+                                        onTap: () {},
                                         child: const Icon(Icons.delete, size: 15, color: Colors.red),
-                                      )
-
+                                      ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -194,10 +204,9 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                       Text(
                                         "${appointment['date']}",
                                         style: Theme.of(context).textTheme.bodySmall,
-                                      )
+                                      ),
                                     ],
                                   ),
-                                  
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -208,9 +217,9 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                       Text(
                                         "${appointment['location']}",
                                         style: Theme.of(context).textTheme.bodySmall,
-                                      )
+                                      ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -218,30 +227,11 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                         ),
                       );
                     }).toList(),
-                    TextButton(
-                      onPressed: () {
-                        // Navigate to a screen that shows all appointments
-                        //Navigator.pushNamed(context, AppRoutes.allAppointments);
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: Text(
-                        'See All',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ),
                   ],
                 );
-              },
-            ),
-          ],
+              }).toList(),
+            );
+          },
         ),
       ),
     );

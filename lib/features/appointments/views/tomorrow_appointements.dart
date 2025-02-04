@@ -3,24 +3,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class TodayAppointments extends StatefulWidget {
-  const TodayAppointments({super.key});
+class TomorrowAppointments extends StatefulWidget {
+  const TomorrowAppointments({super.key});
 
   @override
-  State<TodayAppointments> createState() => _TodayAppointmentsState();
+  State<TomorrowAppointments> createState() => _TomorrowAppointmentsState();
 }
 
-class _TodayAppointmentsState extends State<TodayAppointments> {
+class _TomorrowAppointmentsState extends State<TomorrowAppointments> {
   late Future<List<Map<String, dynamic>>> appointments;
+  late final DateTime _tomorrow;
+  late final String formattedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _tomorrow = DateTime.now().add(const Duration(days: 1)); // Initialize _tomorrow
+    formattedDate = DateFormat('E d').format(_tomorrow); // Initialize formattedDate
+    appointments = fetchAppointments(); // Fetch appointments in initState
+  }
 
   Future<List<Map<String, dynamic>>> fetchAppointments() async {
     try {
       final firestore = FirebaseFirestore.instance;
-      final today = DateFormat('yyyy-M-d').format(DateTime.now()); // Updated format
+      final tomorrow = DateFormat('yyyy-M-d').format(_tomorrow); // Use _tomorrow here
 
       final querySnapshot = await firestore
           .collection("appointments")
-          .where("date", isEqualTo: today) // Ensure "date" matches the field name in Firestore
+          .where("date", isEqualTo: tomorrow) // Fetch appointments for tomorrow
           .limit(5)
           .get();
 
@@ -34,12 +44,6 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
       print("Error fetching appointments: $e");
       return [];
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    appointments = fetchAppointments(); // Fetch appointments in initState
   }
 
   Color getStatusColor(String status) {
@@ -67,15 +71,15 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  margin: EdgeInsets.only(left: 10),
+                  margin: const EdgeInsets.only(left: 10),
                   child: Text(
-                  'Today\'s Appointments',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
+                    formattedDate, // Use formattedDate here
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                )
               ],
             ),
             FutureBuilder<List<Map<String, dynamic>>>(
@@ -142,9 +146,7 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
+                                      const SizedBox(width: 10),
                                       GestureDetector(
                                         onTap: () {
                                           Navigator.pushNamed(
@@ -155,16 +157,13 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                         },
                                         child: const Icon(Icons.edit, size: 15, color: Colors.white),
                                       ),
-                                      const SizedBox(
-                                        width:10,
-                                      ),
+                                      const SizedBox(width: 10),
                                       GestureDetector(
-                                        onTap: (){},
+                                        onTap: () {},
                                         child: const Icon(Icons.delete, size: 15, color: Colors.red),
-                                      )
-
+                                      ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -194,10 +193,9 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                       Text(
                                         "${appointment['date']}",
                                         style: Theme.of(context).textTheme.bodySmall,
-                                      )
+                                      ),
                                     ],
                                   ),
-                                  
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -208,9 +206,9 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                       Text(
                                         "${appointment['location']}",
                                         style: Theme.of(context).textTheme.bodySmall,
-                                      )
+                                      ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -221,7 +219,7 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                     TextButton(
                       onPressed: () {
                         // Navigate to a screen that shows all appointments
-                        //Navigator.pushNamed(context, AppRoutes.allAppointments);
+                        // Navigator.pushNamed(context, AppRoutes.allAppointments);
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.transparent,
