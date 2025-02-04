@@ -118,7 +118,7 @@ class _AllContactsState extends State<AllContacts> {
                     Spacer(), // Push the button to the end
                     IconButton(
                       onPressed: contact.phones.isNotEmpty ? () => _makePhoneCall(contact.phones.first.number) : null,
-                      icon: Icon(Icons.phone),
+                      icon: Icon(Icons.add),
                     ),
                   ],
                 ),

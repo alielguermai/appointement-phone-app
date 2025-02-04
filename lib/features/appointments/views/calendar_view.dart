@@ -1,6 +1,10 @@
+import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/core/widgets/table_calendar.dart';
+import 'package:appointement_phone_app/features/appointments/views/today_appointements.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/day_appointments.dart';
+import 'package:appointement_phone_app/features/appointments/widgets/test.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CalendarView extends StatefulWidget {
@@ -14,56 +18,58 @@ class _CalendarViewState extends State<CalendarView> {
   final List<String> titles = ['All', 'Personal', 'Business'];
   int selectedIndex = 0;
 
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  String? UserName;
+
+  void getUser() {}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendar'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(50)
+              ),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text("User Name"),
+          ],
+        ),
         backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
+        actions: [
+          TextButton(
+            onPressed:(){
+              Navigator.of(context).pushNamed(AppRoutes.newAppointment);
+            }
+            ,
+            style: ButtonStyle(
+              backgroundColor: WidgetStateColor.transparent
+            ),
+            child: Text('Add', style: TextStyle(color: Colors.grey),),
+          ),
+          IconButton(
+            onPressed: (){
+              Navigator.pushNamed(context, AppRoutes.notificationPage);
+            },
+            icon: Icon(Icons.notifications)
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-                padding: EdgeInsets.all(16),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(titles.length, (index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedIndex = index;
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: selectedIndex == index ? Colors.blue : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.grey,
-                            width: 2,
-                          ),
-                        ),
-                        child: Text(
-                          titles[index],
-                          style: TextStyle(
-                            color: selectedIndex == index ? Colors.white : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ),
-            MyTableCalendar(),
-            DayAppointments(),
+            WeekCalendarPage(),
+            TodayAppointments(),
             // Make sure to use 'const' if needed
           ],
         ),

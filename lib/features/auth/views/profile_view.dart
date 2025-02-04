@@ -1,6 +1,8 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/auth/views/logout.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileView extends StatefulWidget {
@@ -11,6 +13,53 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String? phoneNumber;
+  String? UserName;
+  String? Metings;
+
+  void getUser() {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      phoneNumber = user.phoneNumber;
+      print(phoneNumber);
+    } else {
+      print("No user is signed in");
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserData() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
+    }
+    return null;
+  }
+
+  void loadUserData() async {
+    User? user = _auth.currentUser;
+    Map<String, dynamic> ? userData = await getUserData();
+    if (userData != null){
+      setState(() {
+        UserName = userData['name'] ?? '';
+      });
+    } else {
+      print("User data not found");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getUser();
+    loadUserData();
+  }
 
   Widget _buildStatColumn(String value, String label) {
     return Column(
@@ -82,8 +131,8 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             const SizedBox(height: 16),
             // Name
-            const Text(
-              'John Doe',
+            Text(
+              UserName ?? "no user name available",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -91,8 +140,8 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             const SizedBox(height: 8),
             // Phone Number
-            const Text(
-              '+1 234 567 8900',
+            Text(
+              phoneNumber ?? "no phone number available",
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
@@ -103,11 +152,11 @@ class _ProfileViewState extends State<ProfileView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatColumn('24', 'Meetings'),
+                _buildStatColumn(Metings ?? '??', 'Meetings'),
                 _buildDivider(),
-                _buildStatColumn('95%', 'On Time'),
+                _buildStatColumn('??%', 'On Time'),
                 _buildDivider(),
-                _buildStatColumn('12', 'Contacts'),
+                _buildStatColumn('??', 'Contacts'),
               ],
             ),
             const SizedBox(height: 32),
@@ -115,7 +164,9 @@ class _ProfileViewState extends State<ProfileView> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: (){
+                  Navigator.of(context).pushNamed(AppRoutes.editProfilePage);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(vertical: 16),

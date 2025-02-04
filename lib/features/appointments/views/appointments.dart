@@ -17,6 +17,8 @@ class Appointments extends StatefulWidget {
 }
 
 class _Appointments extends State<Appointments> {
+  final NotiService notiService = NotiService();
+
   final List<String> meetingTypes = [
     "Business Meeting",
     "Team Meeting",
@@ -44,12 +46,19 @@ class _Appointments extends State<Appointments> {
     '30 Minutes Before',
   ];
 
+  final List<String> statusOptions = [
+    "Scheduled",
+    "In Progress",
+    "Completed",
+  ];
+
   String selectedMeetingType = "Business Meeting";
   String selectedLocationType = "Office building";
   String selectedCategorieType = "Business";
   String selectedContact = ""; // Store selected contact
   String selectedDate = ""; // Store the selected date
   String selectedTime = ""; // Store selected time
+  String selectedStatus = "Scheduled"; // Default status
   String? _reminderPreference;
 
   // Function to show the time picker
@@ -151,7 +160,6 @@ class _Appointments extends State<Appointments> {
     );
   }
 
-
   void saveAppointmentToFirestore() async {
     try {
       final firestore = FirebaseFirestore.instance;
@@ -164,13 +172,14 @@ class _Appointments extends State<Appointments> {
 
       // data to save
       final appointmentData = {
-        "title": selectedMeetingType, // Add this line
+        "title": selectedMeetingType,
         "meetingType": selectedMeetingType,
         "contact": selectedContact,
         "date": selectedDate,
         "time": selectedTime,
         "location": selectedLocationType,
         "category": selectedCategorieType,
+        "status": selectedStatus, // Add the selected status
         "createdAt": FieldValue.serverTimestamp(),
         "userId": user.uid,
         'reminderPreference': _reminderPreference,
@@ -182,6 +191,10 @@ class _Appointments extends State<Appointments> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Appointment created successfully!")),
       );
+      notiService.showNotification(
+          title: 'Appointment created successfully for $selectedMeetingType',
+          body: 'with $selectedContact'
+      );
       Navigator.of(context).pushNamed(AppRoutes.homePageRoute);
     } catch (e) {
       // error message
@@ -190,7 +203,6 @@ class _Appointments extends State<Appointments> {
       );
     }
   }
-
 
   void _scheduleReminder(Map<String, dynamic> appointment) {
     final notiService = NotiService();
@@ -221,8 +233,6 @@ class _Appointments extends State<Appointments> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -236,22 +246,22 @@ class _Appointments extends State<Appointments> {
           ),
         ],
       ),
-
-      body: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Create New Appointment',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
+      body: SingleChildScrollView( // Wrap the Column with SingleChildScrollView
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Create New Appointment',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
+            Container(
               width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
                   CustomTextField(
@@ -266,6 +276,7 @@ class _Appointments extends State<Appointments> {
                     },
                     readOnly: true,
                   ),
+                  const SizedBox(height: 16.0), // Add spacing between fields
                   CustomTextField(
                     label: "With",
                     hintText: selectedContact.isEmpty
@@ -274,18 +285,21 @@ class _Appointments extends State<Appointments> {
                     onTap: _selectContact,
                     readOnly: true,
                   ),
+                  const SizedBox(height: 16.0),
                   CustomTextField(
                     label: "Date",
                     onTap: _selectDate,
                     readOnly: true,
                     hintText: selectedDate.isEmpty ? "Select Date" : selectedDate,
                   ),
+                  const SizedBox(height: 16.0),
                   CustomTextField(
                     label: "Time",
                     onTap: _selectTime,
-                    readOnly:
-                    true, hintText: selectedTime.isEmpty ? "Select Time" : selectedTime,
+                    readOnly: true,
+                    hintText: selectedTime.isEmpty ? "Select Time" : selectedTime,
                   ),
+                  const SizedBox(height: 16.0),
                   CustomTextField(
                     label: "Location",
                     onTap: () {
@@ -295,9 +309,10 @@ class _Appointments extends State<Appointments> {
                         });
                       });
                     },
-                    readOnly:
-                    true, hintText: selectedLocationType,
+                    readOnly: true,
+                    hintText: selectedLocationType,
                   ),
+                  const SizedBox(height: 16.0),
                   CustomTextField(
                     label: "Category",
                     onTap: () {
@@ -307,9 +322,10 @@ class _Appointments extends State<Appointments> {
                         });
                       });
                     },
-                    readOnly:
-                    true, hintText: selectedCategorieType,
+                    readOnly: true,
+                    hintText: selectedCategorieType,
                   ),
+                  const SizedBox(height: 16.0),
                   DropdownButtonFormField<String>(
                     value: _reminderPreference,
                     items: reminderOptions.map((String value) {
@@ -331,7 +347,29 @@ class _Appointments extends State<Appointments> {
                       return null;
                     },
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 16.0),
+                  DropdownButtonFormField<String>(
+                    value: selectedStatus,
+                    items: statusOptions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedStatus = value!;
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: 'Status'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a status';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 32.0), // Add extra spacing before the button
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: SizedBox(
@@ -355,8 +393,8 @@ class _Appointments extends State<Appointments> {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -17,28 +17,26 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
   static const List<Widget> _pages =[
-    FavoriteContacts(),
     CalendarView(),
     ContactView(),
+    FavoriteContacts(),
     NotificationView(),
     ProfileView(),
   ];
 
   final List<BottomNavigationBarItem> _navBarItems = const [
     BottomNavigationBarItem(
-      icon: Icon(Icons.star),
-      label: 'Favorite',
-    ),
-    BottomNavigationBarItem(
       icon: Icon(Icons.calendar_month),
       label: 'Calendar',
     ),
-
     BottomNavigationBarItem(
       icon: Icon(Icons.people_rounded),
       label: 'Contacts',
     ),
-
+    BottomNavigationBarItem(
+      icon: Icon(Icons.star),
+      label: 'Favorite',
+    ),
     BottomNavigationBarItem(
       icon: Icon(Icons.notification_important_rounded),
       label: 'Notification',
