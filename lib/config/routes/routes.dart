@@ -8,4 +8,5 @@ class AppRoutes {
   static const String editProfilePage = '/editProfile';
   static const String editAppointment = '/editAppointment';
   static const String notificationPage = '/notifications';
+  static const String AddContactPage = '/addContact';
 }

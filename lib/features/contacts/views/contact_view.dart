@@ -1,3 +1,4 @@
+import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/core/widgets/search_button.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/all_contacts.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
@@ -15,7 +16,18 @@ class _ContactViewState extends State<ContactView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Contact'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Contact'),
+            IconButton(
+              onPressed: (){
+                Navigator.of(context).pushNamed(AppRoutes.AddContactPage);
+              },
+              icon: Icon(Icons.add),
+            )
+          ],
+        ),
         backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       ),
       backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,

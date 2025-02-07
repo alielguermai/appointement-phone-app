@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 class Appointments extends StatefulWidget {
   const Appointments({super.key});
@@ -164,6 +165,7 @@ class _Appointments extends State<Appointments> {
     try {
       final firestore = FirebaseFirestore.instance;
       final user = FirebaseAuth.instance.currentUser;
+      final uuid = Uuid();
 
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You must be logged in to create an appointment.')));
@@ -172,6 +174,7 @@ class _Appointments extends State<Appointments> {
 
       // data to save
       final appointmentData = {
+        "id": uuid.v4(),
         "title": selectedMeetingType,
         "meetingType": selectedMeetingType,
         "contact": selectedContact,
@@ -179,7 +182,7 @@ class _Appointments extends State<Appointments> {
         "time": selectedTime,
         "location": selectedLocationType,
         "category": selectedCategorieType,
-        "status": selectedStatus, // Add the selected status
+        "status": selectedStatus,
         "createdAt": FieldValue.serverTimestamp(),
         "userId": user.uid,
         'reminderPreference': _reminderPreference,

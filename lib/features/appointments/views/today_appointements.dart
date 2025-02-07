@@ -13,28 +13,61 @@ class TodayAppointments extends StatefulWidget {
 class _TodayAppointmentsState extends State<TodayAppointments> {
   late Future<List<Map<String, dynamic>>> appointments;
 
+
   Future<List<Map<String, dynamic>>> fetchAppointments() async {
-    try {
-      final firestore = FirebaseFirestore.instance;
-      final today = DateFormat('yyyy-M-d').format(DateTime.now()); // Updated format
+  try {
+    final firestore = FirebaseFirestore.instance;
+    final today = DateFormat('yyyy-M-d').format(DateTime.now());
 
-      final querySnapshot = await firestore
-          .collection("appointments")
-          .where("date", isEqualTo: today) // Ensure "date" matches the field name in Firestore
-          .limit(5)
-          .get();
+    final querySnapshot = await firestore
+        .collection("appointments")
+        .where("date", isEqualTo: today)
+        .limit(5)
+        .get();
 
-      return querySnapshot.docs.map((doc) {
-        return {
-          "id": doc.id,
-          ...doc.data() as Map<String, dynamic>,
-        };
-      }).toList();
-    } catch (e) {
-      print("Error fetching appointments: $e");
-      return [];
-    }
+    return querySnapshot.docs.map((doc) {
+      return {
+        "docId": doc.id, // Firestore document ID (required for deletion)
+        ...doc.data() as Map<String, dynamic>,
+      };
+    }).toList();
+  } catch (e) {
+    print("Error fetching appointments: $e");
+    return [];
   }
+}
+
+
+  
+ 
+  void deleteAppointment(String docId) async {
+  if (docId.isEmpty) {
+    print("Error: Document ID is empty");
+    return;
+  }
+
+  try {
+    print("Attempting to delete appointment: $docId");
+    await FirebaseFirestore.instance
+        .collection("appointments")
+        .doc(docId)
+        .delete();
+    print("Appointment deleted successfully: $docId");
+
+    setState(() {
+      appointments = fetchAppointments();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Appointment deleted successfully")),
+    );
+  } catch (e) {
+    print("Error deleting appointment: $e");
+  }
+}
+
+
+
 
   @override
   void initState() {
@@ -147,11 +180,14 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.editAppointment,
-                                            arguments: appointment,
-                                          );
+                                          print(appointment["id"].runtimeType); // Debug print to check if it's null or empty
+                                          print(appointment["id"]);                                
+  Navigator.pushNamed(
+    context,
+    AppRoutes.editAppointment,
+    arguments: appointment["docId"],
+  );
+
                                         },
                                         child: const Icon(Icons.edit, size: 15, color: Colors.white),
                                       ),
@@ -159,9 +195,16 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                         width:10,
                                       ),
                                       GestureDetector(
-                                        onTap: (){},
+                                        onTap: () {
+                                          if (appointment["docId"] != null) {
+                                          deleteAppointment(appointment["docId"]);
+                                          } else {
+                                            print("Error: Appointment ID is null");
+                                          }
+                                        },
                                         child: const Icon(Icons.delete, size: 15, color: Colors.red),
-                                      )
+                                      ),
+
 
                                     ],
                                   )

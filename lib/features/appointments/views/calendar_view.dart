@@ -48,7 +48,11 @@ class _CalendarViewState extends State<CalendarView> {
     }
   }
 
-  void getUser() {}
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,17 +65,22 @@ class _CalendarViewState extends State<CalendarView> {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(50)
               ),
             ),
             SizedBox(
               width: 10,
             ),
-            Text("User Name"),
+            Text(
+              "${UserName}",
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
-        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
+        backgroundColor: Colors.blue,
         actions: [
           TextButton(
             onPressed:(){
@@ -81,13 +90,19 @@ class _CalendarViewState extends State<CalendarView> {
             style: ButtonStyle(
               backgroundColor: WidgetStateColor.transparent
             ),
-            child: Text('Add', style: TextStyle(color: Colors.grey),),
+            child: Text(
+              'Add',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold
+              ),
+            ),
           ),
           IconButton(
             onPressed: (){
               Navigator.pushNamed(context, AppRoutes.notificationPage);
             },
-            icon: Icon(Icons.notifications)
+            icon: Icon(Icons.notification_important_sharp, color: Colors.white,)
           )
         ],
       ),
@@ -101,7 +116,7 @@ class _CalendarViewState extends State<CalendarView> {
                 children: [
                   TodayAppointments(),
                   //NextDaysAppointments(numberOfDays: 7)
-                  NextDaysAppointments()
+                  NextDaysAppointments(numberOfDays: 7,)
                 ],
               ),
             ),

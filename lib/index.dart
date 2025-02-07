@@ -20,7 +20,6 @@ class _HomePageState extends State<HomePage> {
     CalendarView(),
     ContactView(),
     FavoriteContacts(),
-    NotificationView(),
     ProfileView(),
   ];
 
@@ -38,13 +37,8 @@ class _HomePageState extends State<HomePage> {
       label: 'Favorite',
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.notification_important_rounded),
-      label: 'Notification',
-    ),
-
-    BottomNavigationBarItem(
-      icon: Icon(Icons.person),
-      label: 'Profile',
+      icon: Icon(Icons.format_align_justify),
+      label: 'more',
     )
   ];
 

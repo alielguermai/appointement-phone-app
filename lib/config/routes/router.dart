@@ -4,6 +4,7 @@ import 'package:appointement_phone_app/features/appointments/views/edit_appointm
 import 'package:appointement_phone_app/features/auth/views/edit_profile.dart';
 import 'package:appointement_phone_app/features/auth/views/login_view.dart';
 import 'package:appointement_phone_app/features/auth/views/verification_view.dart';
+import 'package:appointement_phone_app/features/contacts/views/add_contact.dart';
 import 'package:appointement_phone_app/features/landingPage/landing_page.dart';
 import 'package:appointement_phone_app/features/notifications/views/notification_view.dart';
 import 'package:appointement_phone_app/features/settings/views/settings_view.dart';
@@ -60,6 +61,11 @@ Route<dynamic> onGenerate(RouteSettings settings) {
     case AppRoutes.editProfilePage:
       return CupertinoPageRoute(
         builder: (_) => user != null ? const EditProfile() : const LandingPage(),
+      );
+    
+    case AppRoutes.AddContactPage:
+      return CupertinoPageRoute(
+        builder: (_) => user != null ? AddContact() : const LandingPage(),
       );
 
   // Default route (landing page)

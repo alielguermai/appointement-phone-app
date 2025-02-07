@@ -58,6 +58,24 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     }
   }
 
+  void deleteAppointment(String appointmentId) async {
+    try {
+      await FirebaseFirestore.instance.collection("appointments").doc(appointmentId).delete();
+      print(appointmentId);
+      setState(() {
+        appointmentsByDay = fetchAppointmentsForMultipleDays();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Appointment delted successfully")),
+      );
+    } catch (e) {
+      print("Error deleting appointment: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to delete appointment")),
+      );
+    }
+  }
+
   Color getStatusColor(String status) {
     switch (status) {
       case 'Scheduled':
@@ -114,7 +132,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                       child: Text(
                         date, // Display formatted date
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -170,7 +188,9 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                                       ),
                                       const SizedBox(width: 10),
                                       GestureDetector(
-                                        onTap: () {},
+                                        onTap: () {
+                                          deleteAppointment(appointment["id"]);
+                                        },
                                         child: const Icon(Icons.delete, size: 15, color: Colors.red),
                                       ),
                                     ],

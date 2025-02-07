@@ -13,7 +13,9 @@ class EditAppointments extends StatefulWidget {
 }
 
 class _EditAppointmentsState extends State<EditAppointments> {
-  late Map<String, dynamic> appointmentData;
+  late String docId; // Document ID
+  late Map<String, dynamic> appointmentData = {};
+  bool isFetched = false;
 
   final List<String> meetingTypes = [
     "Business Meeting",
@@ -48,30 +50,60 @@ class _EditAppointmentsState extends State<EditAppointments> {
     "Completed",
   ];
 
-  late String selectedMeetingType;
-  late String selectedLocationType;
-  late String selectedCategorieType;
-  late String selectedContact;
-  late String selectedDate;
-  late String selectedTime;
-  late String selectedStatus;
+  // Initialize fields with default values
+  late String selectedMeetingType = '';
+  late String selectedLocationType = '';
+  late String selectedCategorieType = '';
+  late String selectedContact = '';
+  late String selectedDate = '';
+  late String selectedTime = '';
+  late String selectedStatus = '';
   late String? _reminderPreference;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Retrieve the appointment data passed from the previous screen
-    appointmentData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    // Retrieve the document ID passed from the previous screen
+    docId = ModalRoute.of(context)!.settings.arguments as String;
 
-    // Initialize the state with the existing appointment data
-    selectedMeetingType = appointmentData["meetingType"];
-    selectedLocationType = appointmentData["location"];
-    selectedCategorieType = appointmentData["category"];
-    selectedContact = appointmentData["contact"];
-    selectedDate = appointmentData["date"];
-    selectedTime = appointmentData["time"];
-    selectedStatus = appointmentData["status"];
-    _reminderPreference = appointmentData["reminderPreference"];
+    // Fetch the appointment data from Firestore
+    if (docId.isNotEmpty && !isFetched){
+       _fetchAppointmentData();
+       isFetched = true;
+    }
+  }
+
+  // Fetch appointment data from Firestore
+  Future<void> _fetchAppointmentData() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final docSnapshot = await firestore.collection("appointments").doc(docId).get();
+
+      if (docSnapshot.exists) {
+        setState(() {
+          appointmentData = docSnapshot.data() as Map<String, dynamic>;
+          // Initialize the state with the existing appointment data
+          selectedMeetingType = appointmentData["meetingType"] ?? '';
+          selectedLocationType = appointmentData["location"] ?? '';
+          selectedCategorieType = appointmentData["category"] ?? '';
+          selectedContact = appointmentData["contact"] ?? '';
+          selectedDate = appointmentData["date"] ?? '';
+          selectedTime = appointmentData["time"] ?? '';
+          selectedStatus = appointmentData["status"] ?? '';
+          _reminderPreference = appointmentData["reminderPreference"];
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Appointment not found")),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to fetch appointment: $e")),
+      );
+      Navigator.of(context).pop();
+    }
   }
 
   // Function to show the time picker
@@ -183,7 +215,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
         return;
       }
 
-      // data to save
+      // Data to save
       final updatedAppointmentData = {
         "title": selectedMeetingType,
         "meetingType": selectedMeetingType,
@@ -198,15 +230,20 @@ class _EditAppointmentsState extends State<EditAppointments> {
         'reminderPreference': _reminderPreference,
       };
 
-      await firestore.collection("appointments").doc(appointmentData["id"]).update(updatedAppointmentData);
-
-      // success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Appointment updated successfully!")),
-      );
+      await firestore.collection("appointments").doc(docId).update(updatedAppointmentData);
       Navigator.of(context).pop();
+
+      /*
+      // Success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Appointment updated successfully!")),
+        );
+      }
+      */
+
     } catch (e) {
-      // error message
+      // Error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to update appointment: $e")),
       );
@@ -301,12 +338,6 @@ class _EditAppointmentsState extends State<EditAppointments> {
                   });
                 },
                 decoration: const InputDecoration(labelText: 'Reminder Preference'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a reminder preference';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16.0),
               DropdownButtonFormField<String>(
@@ -323,12 +354,6 @@ class _EditAppointmentsState extends State<EditAppointments> {
                   });
                 },
                 decoration: const InputDecoration(labelText: 'Status'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a status';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 32.0),
               Padding(
