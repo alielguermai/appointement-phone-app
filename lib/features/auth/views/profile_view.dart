@@ -74,7 +74,10 @@ class _ProfileViewState extends State<ProfileView> {
       ),
       body: ListView(
         children: [
-          Container(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
             color: Colors.blue,
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -266,7 +269,15 @@ class _ProfileViewState extends State<ProfileView> {
               ),
             ),
           ),
-          Logout(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Logout(),
+              Text("Logout", style: TextStyle(color: Colors.red),),
+            ],
+          )
+            ],
+          )
         ],
       ),
     );

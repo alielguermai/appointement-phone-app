@@ -51,13 +51,13 @@ class _EditAppointmentsState extends State<EditAppointments> {
   ];
 
   // Initialize fields with default values
-  late String selectedMeetingType = '';
-  late String selectedLocationType = '';
-  late String selectedCategorieType = '';
+  late String selectedMeetingType = meetingTypes.first;
+  late String selectedLocationType = locations.isNotEmpty ? locations.first : '';
+  late String selectedCategorieType = categories.isNotEmpty ? categories.first : '';
   late String selectedContact = '';
   late String selectedDate = '';
   late String selectedTime = '';
-  late String selectedStatus = '';
+  late String selectedStatus = statusOptions.isNotEmpty ? statusOptions.first : '';
   late String? _reminderPreference;
 
   @override
@@ -110,7 +110,20 @@ class _EditAppointmentsState extends State<EditAppointments> {
   Future<void> _selectTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(), // Default time
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogBackgroundColor: Colors.black,
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.black54,
+              onSurface: Colors.black54,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
@@ -128,6 +141,19 @@ class _EditAppointmentsState extends State<EditAppointments> {
       initialDate: DateTime.now(), // Today's date
       firstDate: DateTime(2000), // Minimum selectable date
       lastDate: DateTime(2100), // Maximum selectable date
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogBackgroundColor: Colors.black,
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.black54,
+              onSurface: Colors.black54,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedDate != null) {
@@ -141,6 +167,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
   void _showSelectionList(List<String> options, Function(String) onSelected) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       builder: (BuildContext context) {
         return SizedBox(
           height: 300,
@@ -250,6 +277,13 @@ class _EditAppointmentsState extends State<EditAppointments> {
     }
   }
 
+
+  @override
+  void initState() {
+    super.initState();
+    _reminderPreference = reminderOptions.first;
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -337,6 +371,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
                     _reminderPreference = value;
                   });
                 },
+                dropdownColor: Colors.white,
                 decoration: const InputDecoration(labelText: 'Reminder Preference'),
               ),
               const SizedBox(height: 16.0),
@@ -353,6 +388,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
                     selectedStatus = value!;
                   });
                 },
+                dropdownColor: Colors.white,
                 decoration: const InputDecoration(labelText: 'Status'),
               ),
               const SizedBox(height: 32.0),

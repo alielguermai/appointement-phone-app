@@ -56,17 +56,30 @@ class _Appointments extends State<Appointments> {
   String selectedMeetingType = "Business Meeting";
   String selectedLocationType = "Office building";
   String selectedCategorieType = "Business";
-  String selectedContact = ""; // Store selected contact
-  String selectedDate = ""; // Store the selected date
-  String selectedTime = ""; // Store selected time
-  String selectedStatus = "Scheduled"; // Default status
+  String selectedContact = "";
+  String selectedDate = "";
+  String selectedTime = "";
+  String selectedStatus = "Scheduled";
   String? _reminderPreference;
 
   // Function to show the time picker
   Future<void> _selectTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(), // Default time
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogBackgroundColor: Colors.black,
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.black54,
+              onSurface: Colors.black54,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
@@ -81,9 +94,22 @@ class _Appointments extends State<Appointments> {
   Future<void> _selectDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(), // Today's date
-      firstDate: DateTime(2000), // Minimum selectable date
-      lastDate: DateTime(2100), // Maximum selectable date
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogBackgroundColor: Colors.black,
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.black54,
+              onSurface: Colors.black54,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedDate != null) {
@@ -93,10 +119,12 @@ class _Appointments extends State<Appointments> {
     }
   }
 
+
   // Generic method to show a bottom sheet and select an item from a list
   void _showSelectionList(List<String> options, Function(String) onSelected) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       builder: (BuildContext context) {
         return SizedBox(
           height: 300,
@@ -106,7 +134,7 @@ class _Appointments extends State<Appointments> {
               return ListTile(
                 title: Text(options[index]),
                 onTap: () {
-                  onSelected(options[index]); // Pass the selected value back
+                  onSelected(options[index]);
                   Navigator.pop(context);
                 },
               );
@@ -117,10 +145,11 @@ class _Appointments extends State<Appointments> {
     );
   }
 
+
   // Function to fetch and display contacts
   Future<void> _selectContact() async {
     if (!await FlutterContacts.requestPermission()) {
-      // Permission denied
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -137,10 +166,10 @@ class _Appointments extends State<Appointments> {
       return;
     }
 
-    // Fetch contacts
+
     final contacts = await FlutterContacts.getContacts(withProperties: true);
 
-    // Show contacts in bottom sheet
+
     showModalBottomSheet(
       context: context,
       builder: (context) => ListView.builder(
@@ -151,7 +180,7 @@ class _Appointments extends State<Appointments> {
             title: Text(contact.displayName),
             onTap: () {
               setState(() {
-                selectedContact = contact.displayName; // Save selected contact
+                selectedContact = contact.displayName;
               });
               Navigator.pop(context);
             },
@@ -222,7 +251,7 @@ class _Appointments extends State<Appointments> {
         reminderDuration = const Duration(hours: 2);
         break;
       case '30 Minutes Before':
-        reminderDuration = const Duration(minutes: 30); // Fixed typo (was 3 minutes)
+        reminderDuration = const Duration(minutes: 30);
         break;
       default:
         reminderDuration = Duration.zero;
@@ -232,7 +261,7 @@ class _Appointments extends State<Appointments> {
     notiService.scheduleNotification(
       title: 'Reminder: ${appointment['title']}',
       body: 'Your appointment is coming up at ${appointment['time']}',
-      reminderTime: reminderTime, // Pass the DateTime object here
+      reminderTime: reminderTime,
     );
   }
 
@@ -249,7 +278,7 @@ class _Appointments extends State<Appointments> {
           ),
         ],
       ),
-      body: SingleChildScrollView( // Wrap the Column with SingleChildScrollView
+      body: SingleChildScrollView(
         child: Column(
           children: [
             const Padding(
@@ -279,7 +308,7 @@ class _Appointments extends State<Appointments> {
                     },
                     readOnly: true,
                   ),
-                  const SizedBox(height: 16.0), // Add spacing between fields
+                  const SizedBox(height: 16.0),
                   CustomTextField(
                     label: "With",
                     hintText: selectedContact.isEmpty
@@ -343,6 +372,8 @@ class _Appointments extends State<Appointments> {
                       });
                     },
                     decoration: const InputDecoration(labelText: 'Reminder Preference'),
+                    dropdownColor: Colors.white,
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select a reminder preference';
@@ -364,7 +395,13 @@ class _Appointments extends State<Appointments> {
                         selectedStatus = value!;
                       });
                     },
-                    decoration: const InputDecoration(labelText: 'Status'),
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    dropdownColor: Colors.white,
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select a status';
@@ -372,7 +409,8 @@ class _Appointments extends State<Appointments> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 32.0), // Add extra spacing before the button
+                  
+                  const SizedBox(height: 32.0),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: SizedBox(

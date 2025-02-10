@@ -30,6 +30,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
   void _selectDate(DateTime date) {
     setState(() {
       selectedDate = date;
+      print("The date is ${selectedDate}");
     });
   }
 

@@ -68,10 +68,10 @@ Route<dynamic> onGenerate(RouteSettings settings) {
         builder: (_) => user != null ? AddContact() : const LandingPage(),
       );
 
-  // Default route (landing page)
     default:
       return CupertinoPageRoute(
         builder: (_) => const LandingPage(),
       );
   }
 }
+

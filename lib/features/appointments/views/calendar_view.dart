@@ -62,11 +62,17 @@ class _CalendarViewState extends State<CalendarView> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 35,
+              height: 35,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(50)
+                borderRadius: BorderRadius.circular(50), // Border radius for the container
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(50), // Border radius for the image
+                child: Image.network(
+                  'https://icon-library.com/images/default-profile-icon/default-profile-icon-24.jpg',
+                  fit: BoxFit.cover, // Ensures the image fills the container without distortion
+                ),
               ),
             ),
             SizedBox(
@@ -124,6 +130,8 @@ class _CalendarViewState extends State<CalendarView> {
         ],
       ),
     );
+
+    
   }
 }
 

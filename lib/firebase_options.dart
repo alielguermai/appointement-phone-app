@@ -41,47 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBcvU-zJY_fqdqrRjNS4riXJ9KgwpBf2JU',
-    appId: '1:807669941804:web:b431d4473a2f24d17c7389',
-    messagingSenderId: '807669941804',
-    projectId: 'appoint-cf2f7',
-    authDomain: 'appoint-cf2f7.firebaseapp.com',
-    storageBucket: 'appoint-cf2f7.firebasestorage.app',
+    apiKey: 'AIzaSyB1Go7HNOLcwr3HT4eLLt4frHoFvwqL9oM',
+    appId: '1:712163739879:web:854ea6aa3c01683b69ba42',
+    messagingSenderId: '712163739879',
+    projectId: 'appointment-ed3bc',
+    authDomain: 'appointment-ed3bc.firebaseapp.com',
+    storageBucket: 'appointment-ed3bc.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyADgEeoTKISuhxH0QWM4nrmEksghK4F3dU',
-    appId: '1:807669941804:android:0f81f259874e4a3f7c7389',
-    messagingSenderId: '807669941804',
-    projectId: 'appoint-cf2f7',
-    storageBucket: 'appoint-cf2f7.firebasestorage.app',
+    apiKey: 'AIzaSyDYmmUxMMyyT8TqPw01VhYZUn9UuKhbJAA',
+    appId: '1:712163739879:android:f14dfa4ffcb4672169ba42',
+    messagingSenderId: '712163739879',
+    projectId: 'appointment-ed3bc',
+    storageBucket: 'appointment-ed3bc.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCjUea68YFMVcMLNNEp8wmpxiwLH3Tq7Us',
-    appId: '1:807669941804:ios:cafbf71d0e7858bf7c7389',
-    messagingSenderId: '807669941804',
-    projectId: 'appoint-cf2f7',
-    storageBucket: 'appoint-cf2f7.firebasestorage.app',
+    apiKey: 'AIzaSyBpaN6irSni0_ASnRhNSQJa326oqB3GSak',
+    appId: '1:712163739879:ios:693f3b98a9883f8c69ba42',
+    messagingSenderId: '712163739879',
+    projectId: 'appointment-ed3bc',
+    storageBucket: 'appointment-ed3bc.firebasestorage.app',
     iosBundleId: 'com.example.appointementPhoneApp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCjUea68YFMVcMLNNEp8wmpxiwLH3Tq7Us',
-    appId: '1:807669941804:ios:cafbf71d0e7858bf7c7389',
-    messagingSenderId: '807669941804',
-    projectId: 'appoint-cf2f7',
-    storageBucket: 'appoint-cf2f7.firebasestorage.app',
+    apiKey: 'AIzaSyBpaN6irSni0_ASnRhNSQJa326oqB3GSak',
+    appId: '1:712163739879:ios:693f3b98a9883f8c69ba42',
+    messagingSenderId: '712163739879',
+    projectId: 'appointment-ed3bc',
+    storageBucket: 'appointment-ed3bc.firebasestorage.app',
     iosBundleId: 'com.example.appointementPhoneApp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBcvU-zJY_fqdqrRjNS4riXJ9KgwpBf2JU',
-    appId: '1:807669941804:web:706414b6b2ec19387c7389',
-    messagingSenderId: '807669941804',
-    projectId: 'appoint-cf2f7',
-    authDomain: 'appoint-cf2f7.firebaseapp.com',
-    storageBucket: 'appoint-cf2f7.firebasestorage.app',
+    apiKey: 'AIzaSyB1Go7HNOLcwr3HT4eLLt4frHoFvwqL9oM',
+    appId: '1:712163739879:web:1a2dd6bb79d5ed5969ba42',
+    messagingSenderId: '712163739879',
+    projectId: 'appointment-ed3bc',
+    authDomain: 'appointment-ed3bc.firebaseapp.com',
+    storageBucket: 'appointment-ed3bc.firebasestorage.app',
   );
-
 }

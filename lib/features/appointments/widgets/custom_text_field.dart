@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
-  final String label; // Field label
-  final String hintText; // Hint text inside the field
-  final VoidCallback? onTap; // Logic to execute when tapped
-  final bool readOnly; // Makes the field read-only
+  final String label;
+  final String hintText;
+  final VoidCallback? onTap;
+  final bool readOnly;
   const CustomTextField({
     super.key,
     required this.label,
@@ -19,7 +19,7 @@ class CustomTextField extends StatelessWidget {
     return Container(
       margin: EdgeInsets.all(10),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Field Label
+
         Text(
           label,
           style: const TextStyle(
@@ -29,11 +29,9 @@ class CustomTextField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-      
-        // TextField with hint and custom behavior
         TextField(
-            readOnly: readOnly, // Makes it uneditable if necessary
-            onTap: onTap, // Custom tap logic (e.g., open date picker)
+            readOnly: readOnly,
+            onTap: onTap,
             decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,

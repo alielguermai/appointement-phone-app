@@ -27,7 +27,7 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
 
     return querySnapshot.docs.map((doc) {
       return {
-        "docId": doc.id, // Firestore document ID (required for deletion)
+        "docId": doc.id,
         ...doc.data() as Map<String, dynamic>,
       };
     }).toList();
@@ -41,30 +41,30 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
   
  
   void deleteAppointment(String docId) async {
-  if (docId.isEmpty) {
-    print("Error: Document ID is empty");
-    return;
+    if (docId.isEmpty) {
+      print("Error: Document ID is empty");
+      return;
+    }
+
+    try {
+      print("Attempting to delete appointment: $docId");
+      await FirebaseFirestore.instance
+          .collection("appointments")
+          .doc(docId)
+          .delete();
+      print("Appointment deleted successfully: $docId");
+
+      setState(() {
+        appointments = fetchAppointments();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Appointment deleted successfully")),
+      );
+    } catch (e) {
+      print("Error deleting appointment: $e");
+    }
   }
-
-  try {
-    print("Attempting to delete appointment: $docId");
-    await FirebaseFirestore.instance
-        .collection("appointments")
-        .doc(docId)
-        .delete();
-    print("Appointment deleted successfully: $docId");
-
-    setState(() {
-      appointments = fetchAppointments();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Appointment deleted successfully")),
-    );
-  } catch (e) {
-    print("Error deleting appointment: $e");
-  }
-}
 
 
 
@@ -72,17 +72,17 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
   @override
   void initState() {
     super.initState();
-    appointments = fetchAppointments(); // Fetch appointments in initState
+    appointments = fetchAppointments();
   }
 
   Color getStatusColor(String status) {
     switch (status) {
       case 'Scheduled':
-        return Colors.blue.shade700;
+        return Colors.blue;
       case 'Completed':
-        return Colors.lightGreen;
+        return Colors.green;
       case 'In Progress':
-        return Colors.orangeAccent.shade100;
+        return Colors.orange;
       default:
         return Colors.grey;
     }
@@ -180,13 +180,13 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          print(appointment["id"].runtimeType); // Debug print to check if it's null or empty
+                                          print(appointment["id"].runtimeType);
                                           print(appointment["id"]);                                
-  Navigator.pushNamed(
-    context,
-    AppRoutes.editAppointment,
-    arguments: appointment["docId"],
-  );
+                                          Navigator.pushNamed(
+                                            context,
+                                            AppRoutes.editAppointment,
+                                            arguments: appointment["docId"],
+                                          );
 
                                         },
                                         child: const Icon(Icons.edit, size: 15, color: Colors.white),

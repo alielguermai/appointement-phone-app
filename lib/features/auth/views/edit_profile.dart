@@ -31,21 +31,24 @@ class _EditProfileState extends State<EditProfile> {
       await _firestore.collection('users').doc(user.uid).set({
         'name': name,
         'imageUrl': imageUrl,
+        'phoneNumber': user.phoneNumber, // Save phone number
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
   }
 
+
   Future<Map<String, dynamic>?> getUserData() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        return doc.data() as Map<String, dynamic>;
-      }
+  User? user = _auth.currentUser;
+  if (user != null) {
+    DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      return doc.data() as Map<String, dynamic>;
     }
-    return null;
   }
+  return null;
+}
+
 
   void loadUserData() async {
     Map<String, dynamic>? userData = await getUserData();
@@ -56,6 +59,7 @@ class _EditProfileState extends State<EditProfile> {
       });
     }
   }
+
 
   Future<void> pickImage() async {
      

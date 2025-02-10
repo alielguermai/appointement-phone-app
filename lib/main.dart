@@ -3,6 +3,7 @@ import 'package:appointement_phone_app/config/routes/router.dart';
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/landingPage/landing_page.dart';
 import 'package:appointement_phone_app/features/reminder/widgets/noti_service.dart';
+import 'package:appointement_phone_app/index.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -66,6 +67,7 @@ class MyApp extends StatelessWidget {
       theme: TAppTheme.lightTheme,
       darkTheme: TAppTheme.darkTheme,
       home: AuthWrapper(),
+      //home: HomePage(),
       onGenerateRoute: onGenerate,
       initialRoute: AppRoutes.loginPageRoute,
     );

@@ -16,6 +16,9 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   late Future<Map<String, List<Map<String, dynamic>>>> appointmentsByDay;
   late final List<String> formattedDates;
   late final List<String> dbDates;
+  bool isDeleting = false;
+
+
 
   @override
   void initState() {
@@ -45,7 +48,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
 
         results[formattedDates[i]] = querySnapshot.docs.map((doc) {
           return {
-            "id": doc.id,
+            "docId": doc.id,
             ...doc.data() as Map<String, dynamic>,
           };
         }).toList();
@@ -58,202 +61,246 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     }
   }
 
-  void deleteAppointment(String appointmentId) async {
-    try {
-      await FirebaseFirestore.instance.collection("appointments").doc(appointmentId).delete();
-      print(appointmentId);
-      setState(() {
-        appointmentsByDay = fetchAppointmentsForMultipleDays();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Appointment delted successfully")),
-      );
-    } catch (e) {
-      print("Error deleting appointment: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to delete appointment")),
-      );
-    }
+  void deleteAppointment(String docId) async {
+  if (docId.isEmpty) {
+    print("Error: Document ID is empty");
+    return;
   }
+
+  setState(() {
+    isDeleting = true;
+  });
+
+  try {
+    print("Attempting to delete appointment: $docId");
+    await FirebaseFirestore.instance
+        .collection("appointments")
+        .doc(docId)
+        .delete();
+    print("Appointment deleted successfully: $docId");
+
+    // Re-fetch appointments
+    final updatedAppointments = await fetchAppointmentsForMultipleDays();
+    
+    setState(() {
+      appointmentsByDay = Future.value(updatedAppointments);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Appointment deleted successfully")),
+    );
+  } catch (e) {
+    print("Error deleting appointment: $e");
+  } finally {
+    setState(() {
+      isDeleting = false; // Stop loading
+    });
+  }
+}
+
+  
 
   Color getStatusColor(String status) {
     switch (status) {
       case 'Scheduled':
-        return Colors.blue.shade700;
+        return Colors.blue;
       case 'Completed':
-        return Colors.lightGreen;
+        return Colors.green;
       case 'In Progress':
-        return Colors.orangeAccent.shade100;
+        return Colors.orange;
       default:
         return Colors.grey;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      child: SingleChildScrollView(
-        child: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
-          future: appointmentsByDay,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+Widget build(BuildContext context) {
 
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  "Error: ${snapshot.error}",
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
+  return Container(
+    margin: const EdgeInsets.symmetric(horizontal: 8),
+    child: SingleChildScrollView(
+      child: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
+        future: appointmentsByDay,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(
-                child: Text("No appointments found."),
-              );
-            }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                "Error: ${snapshot.error}",
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
 
-            final appointmentsByDay = snapshot.data!;
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text("No appointments found."),
+            );
+          }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: appointmentsByDay.entries.map((entry) {
-                final date = entry.key;
-                final appointments = entry.value;
+          final appointmentsByDay = snapshot.data!;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(left: 10, top: 15),
-                      child: Text(
-                        date, // Display formatted date
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: appointmentsByDay.entries.map((entry) {
+              final date = entry.key;
+              final appointments = entry.value;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 10, top: 15),
+                    child: Text(
+                      date,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (appointments.isEmpty)
+                   Center(
+                    child:  Container(
+                      margin: const EdgeInsets.only(left: 10, top: 5),
+                      child: const Text(
+                        "No appointments found.",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
                         ),
                       ),
                     ),
-                    ...appointments.map((appointment) {
-                      final appointmentColor = getStatusColor(appointment["status"]);
-                      return Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: appointmentColor,
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(8),
-                                  topLeft: Radius.circular(8),
-                                ),
+                   ),
+                  ...appointments.map((appointment) {
+                    final appointmentColor = getStatusColor(appointment["status"]);
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: appointmentColor,
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(8),
+                                topLeft: Radius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "${appointment["time"]} ",
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "${appointment["time"]} ",
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      "${appointment["status"]}",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "${appointment["status"]}",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            AppRoutes.editAppointment,
-                                            arguments: appointment,
-                                          );
-                                        },
-                                        child: const Icon(Icons.edit, size: 15, color: Colors.white),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      GestureDetector(
-                                        onTap: () {
-                                          deleteAppointment(appointment["id"]);
-                                        },
-                                        child: const Icon(Icons.delete, size: 15, color: Colors.red),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: appointmentColor.withOpacity(0.15),
-                                borderRadius: const BorderRadius.only(
-                                  bottomRight: Radius.circular(5),
-                                  bottomLeft: Radius.circular(5),
+                                    const SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.editAppointment,
+                                          arguments: appointment["docId"],
+                                        );
+                                      },
+                                      child: const Icon(Icons.edit, size: 15, color: Colors.white),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: isDeleting ? null : () {
+                                        if (appointment["docId"] != null) {
+                                          deleteAppointment(appointment["docId"]);
+                                        } else {
+                                          print("Error: Appointment ID is null");
+                                        }
+                                      },
+                                      child: isDeleting
+                                          ? const SizedBox(
+                                              width: 15, height: 15,
+                                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+                                            )
+                                          : const Icon(Icons.delete, size: 15, color: Colors.red),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              padding: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
-                              width: double.infinity,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "${appointment['title']}",
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        "${appointment['date']}",
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "${appointment['contact']}",
-                                        style: Theme.of(context).textTheme.bodyLarge,
-                                      ),
-                                      Text(
-                                        "${appointment['location']}",
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              ],
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: appointmentColor.withOpacity(0.15),
+                              borderRadius: const BorderRadius.only(
+                                bottomRight: Radius.circular(5),
+                                bottomLeft: Radius.circular(5),
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                );
-              }).toList(),
-            );
-          },
-        ),
+                            padding: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
+                            width: double.infinity,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${appointment['title']}",
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      "${appointment['date']}",
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${appointment['contact']}",
+                                      style: Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                    Text(
+                                      "${appointment['location']}",
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              );
+            }).toList(),
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
 }
