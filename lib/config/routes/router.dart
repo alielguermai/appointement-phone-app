@@ -2,6 +2,7 @@ import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/appointments/views/appointments.dart';
 import 'package:appointement_phone_app/features/appointments/views/edit_appointments.dart';
 import 'package:appointement_phone_app/features/auth/views/edit_profile.dart';
+import 'package:appointement_phone_app/features/auth/views/login_email.dart';
 import 'package:appointement_phone_app/features/auth/views/login_view.dart';
 import 'package:appointement_phone_app/features/auth/views/verification_view.dart';
 import 'package:appointement_phone_app/features/contacts/views/add_contact.dart';
@@ -28,6 +29,10 @@ Route<dynamic> onGenerate(RouteSettings settings) {
     case AppRoutes.otpPageRoute:
       return CupertinoPageRoute(
         builder: (_) => user == null ? const OTPVerificationPage() : const HomePage(),
+      );
+    case AppRoutes.LoginEmailPage:
+      return CupertinoPageRoute(
+        builder: (_) => user == null ? const LoginEmail() : const HomePage(),
       );
 
   // Private routes (accessible only if the user is logged in)

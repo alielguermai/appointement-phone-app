@@ -17,30 +17,46 @@ class _AddContactState extends State<AddContact> {
   late Future<List<Map<String, dynamic>>> users;
   bool sat = false;
 
-  
-  Future<List<Map<String, dynamic>>> fetchUsers() async {
-    try {
-      final firestore = FirebaseFirestore.instance;
-      
-      final QuerySnapshot = await firestore.collection("users").get();
 
-      return QuerySnapshot.docs.map((doc) {
-        return {
-          "docId": doc.id,
-          ...doc.data() as Map<String, dynamic>,
-        };
-      }).toList();
-    } catch (e) {
-      print("Error fetching users: $e");
-      return [];
+  Future<DocumentSnapshot?> searchUserByPhoneNumber(String phoneNumber) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    final querySnapshot = await usersRef.where('phoneNumber', isEqualTo: phoneNumber).get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first;
     }
+    return null;
+  }
+
+  void searchForFriend() async {
+    String phoneNumber = "+212612345678";
+    var userDoc = await searchUserByPhoneNumber(phoneNumber);
+    if (userDoc != null) {
+      print("User Found: ${userDoc.data()}");
+    } else {
+      print("User Not Found");
+    }
+  }
+
+
+  Future<void> sendFriendRequest(String senderId, String receiverId) async {
+    final receiverRef = FirebaseFirestore.instance.collection('users').doc(receiverId);
+
+    await receiverRef.update({
+      'friendRequests': FieldValue.arrayUnion([senderId])
+    });
+
+    print("Friend request sent!");
+  }
+
+  void sendRequest(String senderId, String receiverId) async {
+    await sendFriendRequest(senderId, receiverId);
   }
 
 
   @override
   void initState() {
     super.initState();
-    users = fetchUsers();
   }
 
 
@@ -62,10 +78,7 @@ Widget build(BuildContext context) {
           final usersList = snapshot.data!;
           return TextButton(
             onPressed: () {
-              // Access usersList here
-              if (usersList.isNotEmpty) {
-                print(usersList[0]["name"]); // For example, print the name of the first user
-              }
+              searchForFriend();
             },
             child: Text("search"),
           );

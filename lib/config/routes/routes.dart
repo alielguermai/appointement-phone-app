@@ -9,4 +9,5 @@ class AppRoutes {
   static const String editAppointment = '/editAppointment';
   static const String notificationPage = '/notifications';
   static const String AddContactPage = '/addContact';
+  static const String LoginEmailPage = '/emailLoginPage';
 }

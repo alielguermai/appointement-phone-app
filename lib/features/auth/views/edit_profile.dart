@@ -31,7 +31,7 @@ class _EditProfileState extends State<EditProfile> {
       await _firestore.collection('users').doc(user.uid).set({
         'name': name,
         'imageUrl': imageUrl,
-        'phoneNumber': user.phoneNumber, // Save phone number
+        'phoneNumber': user.phoneNumber,
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }

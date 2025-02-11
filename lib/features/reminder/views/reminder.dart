@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:appointement_phone_app/features/reminder/widgets/noti_service.dart';
 
-
+/*
 class Reminder {
 
   final NotiService notiService = NotiService();
