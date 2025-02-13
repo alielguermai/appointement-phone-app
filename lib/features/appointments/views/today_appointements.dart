@@ -22,7 +22,7 @@ class _TodayAppointmentsState extends State<TodayAppointments> {
     final querySnapshot = await firestore
         .collection("appointments")
         .where("date", isEqualTo: today)
-        .limit(5)
+        //.limit(5)
         .get();
 
     return querySnapshot.docs.map((doc) {

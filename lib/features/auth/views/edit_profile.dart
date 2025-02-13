@@ -22,6 +22,7 @@ class _EditProfileState extends State<EditProfile> {
   FirebaseStorage _storage = FirebaseStorage.instance;
 
   String username = '';
+  String phone_number = '';
   String? imageUrl;
   File? _image;
 
@@ -30,6 +31,7 @@ class _EditProfileState extends State<EditProfile> {
     if (user != null) {
       await _firestore.collection('users').doc(user.uid).set({
         'name': name,
+        'email': user.email,
         'imageUrl': imageUrl,
         'phoneNumber': user.phoneNumber,
         'createdAt': FieldValue.serverTimestamp(),
@@ -56,6 +58,7 @@ class _EditProfileState extends State<EditProfile> {
       setState(() {
         username = userData['name'] ?? '';
         imageUrl = userData['imageUrl'];
+        phone_number = userData['phoneNumber'] ?? '';
       });
     }
   }
@@ -125,6 +128,20 @@ class _EditProfileState extends State<EditProfile> {
               },
             ),
             SizedBox(height: 20),
+
+            TextField(
+              decoration: InputDecoration(
+                label: Text('User Phone number'),
+                hintText: phone_number.isNotEmpty ? phone_number : "Please Enter you  phone number",
+              ),
+              onChanged: (value){
+                setState(() {
+                  phone_number = value;
+                });
+              },
+            ),
+            SizedBox(height: 20),
+
             TextButton(
               onPressed: () async {
                 if (username.isNotEmpty) {
@@ -132,7 +149,10 @@ class _EditProfileState extends State<EditProfile> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Profile Updated Successfully!')),
                   );
-                  Navigator.of(context).pop();
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRoutes.editProfilePage,
+                    (Route<dynamic> route) => false,
+                  );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Please fill in all fields')),

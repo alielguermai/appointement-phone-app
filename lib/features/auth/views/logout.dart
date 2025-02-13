@@ -18,7 +18,10 @@ class _LogoutState extends State<Logout> {
     try {
       await _auth.signOut();
 
-      Navigator.of(context).pushNamed(AppRoutes.loginPageRoute);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.landingPageRoute,
+        (Route<dynamic> route) => false,
+      );
     } catch (e) {
       print('Error loggin out: $e');
     }

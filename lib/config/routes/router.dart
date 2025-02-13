@@ -1,4 +1,6 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
+import 'package:appointement_phone_app/features/appointments/views/add_apointment.dart';
+import 'package:appointement_phone_app/features/appointments/views/add_apointment_with_contact.dart';
 import 'package:appointement_phone_app/features/appointments/views/appointments.dart';
 import 'package:appointement_phone_app/features/appointments/views/edit_appointments.dart';
 import 'package:appointement_phone_app/features/auth/views/edit_profile.dart';
@@ -6,6 +8,7 @@ import 'package:appointement_phone_app/features/auth/views/login_email.dart';
 import 'package:appointement_phone_app/features/auth/views/login_view.dart';
 import 'package:appointement_phone_app/features/auth/views/verification_view.dart';
 import 'package:appointement_phone_app/features/contacts/views/add_contact.dart';
+import 'package:appointement_phone_app/features/contacts/views/friends_request.dart';
 import 'package:appointement_phone_app/features/landingPage/landing_page.dart';
 import 'package:appointement_phone_app/features/notifications/views/notification_view.dart';
 import 'package:appointement_phone_app/features/settings/views/settings_view.dart';
@@ -43,7 +46,7 @@ Route<dynamic> onGenerate(RouteSettings settings) {
 
     case AppRoutes.newAppointment:
       return CupertinoPageRoute(
-        builder: (_) => user != null ? const Appointments() : const LandingPage(),
+        builder: (_) => user != null ? const AddAppointment() : const LandingPage(),
       );
 
     case AppRoutes.editAppointment:
@@ -71,6 +74,11 @@ Route<dynamic> onGenerate(RouteSettings settings) {
     case AppRoutes.AddContactPage:
       return CupertinoPageRoute(
         builder: (_) => user != null ? AddContact() : const LandingPage(),
+      );
+    
+    case AppRoutes.FriendsRequestPgae:
+      return CupertinoPageRoute(
+        builder: (_) => user != null ? FriendsRequest() : const LandingPage(),
       );
 
     default:

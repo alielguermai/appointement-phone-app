@@ -1,9 +1,6 @@
-import 'dart:ffi';
-
-import 'package:appointement_phone_app/core/widgets/search_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 
 class AddContact extends StatefulWidget {
   const AddContact({super.key});
@@ -13,81 +10,159 @@ class AddContact extends StatefulWidget {
 }
 
 class _AddContactState extends State<AddContact> {
-  String _phoneNumber = '';
-  late Future<List<Map<String, dynamic>>> users;
-  bool sat = false;
 
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
 
-  Future<DocumentSnapshot?> searchUserByPhoneNumber(String phoneNumber) async {
+  DocumentSnapshot? searchedUser;
+
+  /// Search for user by phone number
+  Future<void> searchUserByPhoneNumber() async {
+    String phoneNumber = phoneController.text.trim();
+
+    if (phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter a phone number")),
+      );
+      return;
+    }
+
     final usersRef = FirebaseFirestore.instance.collection('users');
     final querySnapshot = await usersRef.where('phoneNumber', isEqualTo: phoneNumber).get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      return querySnapshot.docs.first;
-    }
-    return null;
-  }
-
-  void searchForFriend() async {
-    String phoneNumber = "+212612345678";
-    var userDoc = await searchUserByPhoneNumber(phoneNumber);
-    if (userDoc != null) {
-      print("User Found: ${userDoc.data()}");
+      setState(() {
+        searchedUser = querySnapshot.docs.first;
+      });
     } else {
-      print("User Not Found");
+      setState(() {
+        searchedUser = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User not found")),
+      );
     }
   }
 
 
-  Future<void> sendFriendRequest(String senderId, String receiverId) async {
+  /// Search for ser by email
+  Future<void> searchUserByEmail() async {
+    String email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter a email address")),
+      );
+      return;
+    }
+
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    final querySnapshot = await usersRef.where('email', isEqualTo: email).get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      setState(() {
+        searchedUser = querySnapshot.docs.first;
+      });
+    } else {
+      setState(() {
+        searchedUser = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User not found")),
+      );
+    }
+  }
+
+  /// Send friend request
+  Future<void> sendFriendRequest(String receiverId) async {
+    final senderId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (senderId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("You must be logged in to send a friend request")),
+      );
+      return;
+    }
+
     final receiverRef = FirebaseFirestore.instance.collection('users').doc(receiverId);
 
+    // Add the sender's ID to the receiver's friend requests
     await receiverRef.update({
       'friendRequests': FieldValue.arrayUnion([senderId])
     });
 
-    print("Friend request sent!");
-  }
+    // Add a notification in the 'notifications' collection
+    await FirebaseFirestore.instance.collection('notifications').add({
+      'receiverId': receiverId,
+      'senderId': senderId,
+      'type': 'friend_request',
+      'message': 'You have a new friend request!',
+      'timestamp': FieldValue.serverTimestamp(),
+      'isRead': false, // You can use this to track unread notifications
+    });
 
-  void sendRequest(String senderId, String receiverId) async {
-    await sendFriendRequest(senderId, receiverId);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Friend request sent!")),
+    );
   }
 
 
   @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add Contact'),
+        backgroundColor: Colors.white,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: "Enter phone number",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 10),
+
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: "Entre  address mail",
+                border: OutlineInputBorder()
+              ),
+            ),
+            ElevatedButton(
+              onPressed: searchUserByPhoneNumber,
+              child: Text("Search"),
+            ),
+            ElevatedButton(
+              onPressed: searchUserByEmail,
+              child: Text("Search"),
+            ),
+
+            SizedBox(height: 20),
+
+            if (searchedUser != null) ...[
+              Text("User Found: ${searchedUser!['name']}"),
+              Text("User ID: ${searchedUser!.id}"),
+              SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: () {
+
+                  sendFriendRequest(searchedUser!.id);
+                },
+                child: Text("Send Friend Request"),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
-
-
-  @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Add Contact'),
-      backgroundColor: Colors.white,
-    ),
-    body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: users,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
-          final usersList = snapshot.data!;
-          return TextButton(
-            onPressed: () {
-              searchForFriend();
-            },
-            child: Text("search"),
-          );
-        } else {
-          return Center(child: Text("No users found"));
-        }
-      },
-    ),
-  );
-}
-
 }

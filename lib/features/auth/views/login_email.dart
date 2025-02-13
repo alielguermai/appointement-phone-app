@@ -36,7 +36,13 @@ class _LoginEmailState extends State<LoginEmail> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login successful!')),
         );
+
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.homePageRoute,
+          (Route<dynamic> route) => false,
+        );
       }
+
     } on FirebaseAuthException catch(e) {
         String errorMessage = 'Login failed. Please try again.';
         if (e.code == 'user-not-found') {
@@ -79,7 +85,10 @@ class _LoginEmailState extends State<LoginEmail> {
           SnackBar(content: Text('Accout created successfullt!')),
         );
 
-        Navigator.pushNamed(context, AppRoutes.homePageRoute);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.homePageRoute,
+          (Route<dynamic> route) => false,
+        );
       }
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Sign-up failed. Please try again.';
@@ -149,6 +158,9 @@ class _LoginEmailState extends State<LoginEmail> {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _signUp,
+               style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+              ),
               child: const Text('Sign Up'),
             ),
           ],

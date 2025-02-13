@@ -69,7 +69,7 @@ class _ProfileViewState extends State<ProfileView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('More'),
+        title: const Text('More', style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.blue,
       ),
       body: ListView(

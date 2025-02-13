@@ -69,7 +69,7 @@ class MyApp extends StatelessWidget {
       home: AuthWrapper(),
       //home: HomePage(),
       onGenerateRoute: onGenerate,
-      initialRoute: AppRoutes.loginPageRoute,
+      initialRoute: AppRoutes.landingPageRoute,
     );
   }
 }

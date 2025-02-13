@@ -8,7 +8,9 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Padding(
+        padding: EdgeInsets.fromLTRB(20, 50, 20, 20),
+        child: Column(
         children: [
           TextButton(
             onPressed: (){
@@ -24,7 +26,8 @@ class LandingPage extends StatelessWidget {
             child: Text('Login with a phone number'),
           )
         ],
-      )
+      ),
+      ),
     );
   }
 }

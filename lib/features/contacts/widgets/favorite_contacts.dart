@@ -15,13 +15,13 @@ class FavoriteContacts extends StatefulWidget {
 class _FavoriteContactsState extends State<FavoriteContacts> {
   List<Contact> contacts = [];
   List<Contact> favoriteContacts = [];
-  bool _showContacts = false; // Controls visibility of the contacts list
+  bool _showContacts = false;
 
   @override
   void initState() {
     super.initState();
     _fetchContacts();
-    _loadFavoriteContacts(); // Load saved favorites on app start
+    _loadFavoriteContacts();
   }
 
   Future<void> _fetchContacts() async {

@@ -1,12 +1,18 @@
-import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class NextDaysAppointments extends StatefulWidget {
-  final int numberOfDays; // Number of future days to fetch appointments for
+  final int numberOfDays;
+  final ScrollController scrollController;
+  final Function(DateTime)? onDayVisible;
 
-  const NextDaysAppointments({super.key, this.numberOfDays = 3});
+  const NextDaysAppointments({
+    super.key,
+    this.numberOfDays = 3,
+    required this.scrollController,
+    this.onDayVisible,
+  });
 
   @override
   State<NextDaysAppointments> createState() => _NextDaysAppointmentsState();
@@ -17,8 +23,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   late final List<String> formattedDates;
   late final List<String> dbDates;
   bool isDeleting = false;
-
-
+  Map<String, GlobalKey> dayKeys = {};
 
   @override
   void initState() {
@@ -26,13 +31,48 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     formattedDates = [];
     dbDates = [];
 
+    // Initialize dates and keys
     for (int i = 1; i <= widget.numberOfDays; i++) {
       DateTime futureDate = DateTime.now().add(Duration(days: i));
-      formattedDates.add(DateFormat('E d').format(futureDate)); // Display format
-      dbDates.add(DateFormat('yyyy-M-d').format(futureDate)); // DB format
+      String formattedDate = DateFormat('E d').format(futureDate);
+      String dbDate = DateFormat('yyyy-M-d').format(futureDate);
+
+      formattedDates.add(formattedDate);
+      dbDates.add(dbDate);
+      dayKeys[formattedDate] = GlobalKey();
     }
 
     appointmentsByDay = fetchAppointmentsForMultipleDays();
+    _setupScrollListener();
+  }
+
+  void _setupScrollListener() {
+    widget.scrollController.addListener(() {
+      _checkVisibleDates();
+    });
+  }
+
+  void _checkVisibleDates() {
+    if (!mounted) return;
+
+    for (String formattedDate in formattedDates) {
+      final key = dayKeys[formattedDate];
+      if (key?.currentContext != null) {
+        final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
+        final position = box.localToGlobal(Offset.zero);
+
+        // Check if this date section is visible in the viewport
+        if (position.dy >= 0 && position.dy <= MediaQuery.of(context).size.height) {
+          // Find the corresponding DateTime object
+          int index = formattedDates.indexOf(formattedDate);
+          if (index != -1) {
+            DateTime visibleDate = DateTime.now().add(Duration(days: index + 1));
+            widget.onDayVisible?.call(visibleDate);
+            break;
+          }
+        }
+      }
+    }
   }
 
   Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
@@ -43,7 +83,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
       for (int i = 0; i < dbDates.length; i++) {
         final querySnapshot = await firestore
             .collection("appointments")
-            .where("date", isEqualTo: dbDates[i]) // Fetch appointments for each day
+            .where("date", isEqualTo: dbDates[i])
             .get();
 
         results[formattedDates[i]] = querySnapshot.docs.map((doc) {
@@ -62,63 +102,187 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   }
 
   void deleteAppointment(String docId) async {
-  if (docId.isEmpty) {
-    print("Error: Document ID is empty");
-    return;
-  }
+    if (docId.isEmpty) {
+      print("Error: Document ID is empty");
+      return;
+    }
 
-  setState(() {
-    isDeleting = true;
-  });
-
-  try {
-    print("Attempting to delete appointment: $docId");
-    await FirebaseFirestore.instance
-        .collection("appointments")
-        .doc(docId)
-        .delete();
-    print("Appointment deleted successfully: $docId");
-
-    // Re-fetch appointments
-    final updatedAppointments = await fetchAppointmentsForMultipleDays();
-    
     setState(() {
-      appointmentsByDay = Future.value(updatedAppointments);
+      isDeleting = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Appointment deleted successfully")),
-    );
-  } catch (e) {
-    print("Error deleting appointment: $e");
-  } finally {
-    setState(() {
-      isDeleting = false; // Stop loading
-    });
-  }
-}
+    try {
+      await FirebaseFirestore.instance
+          .collection("appointments")
+          .doc(docId)
+          .delete();
 
-  
+      // Re-fetch appointments
+      final updatedAppointments = await fetchAppointmentsForMultipleDays();
+
+      setState(() {
+        appointmentsByDay = Future.value(updatedAppointments);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Appointment deleted successfully")),
+        );
+      }
+    } catch (e) {
+      print("Error deleting appointment: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error deleting appointment: $e")),
+        );
+      }
+    } finally {
+      setState(() {
+        isDeleting = false;
+      });
+    }
+  }
 
   Color getStatusColor(String status) {
-    switch (status) {
-      case 'Scheduled':
+    switch (status.toLowerCase()) {
+      case 'scheduled':
         return Colors.blue;
-      case 'Completed':
+      case 'completed':
         return Colors.green;
-      case 'In Progress':
+      case 'in progress':
         return Colors.orange;
       default:
         return Colors.grey;
     }
   }
 
-  @override
-Widget build(BuildContext context) {
+  Widget buildAppointmentCard(Map<String, dynamic> appointment) {
+    final appointmentColor = getStatusColor(appointment["status"]);
 
-  return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 8),
-    child: SingleChildScrollView(
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: appointmentColor,
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(8),
+                topLeft: Radius.circular(8),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${appointment["time"]} ",
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "${appointment["status"]}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          'edit_appointment',
+                          arguments: appointment["docId"],
+                        );
+                      },
+                      child: const Icon(Icons.edit, size: 15, color: Colors.white),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: isDeleting ? null : () {
+                        if (appointment["docId"] != null) {
+                          deleteAppointment(appointment["docId"]);
+                        }
+                      },
+                      child: isDeleting
+                          ? const SizedBox(
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.red,
+                        ),
+                      )
+                          : const Icon(Icons.delete, size: 15, color: Colors.red),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: appointmentColor.withOpacity(0.15),
+              borderRadius: const BorderRadius.only(
+                bottomRight: Radius.circular(5),
+                bottomLeft: Radius.circular(5),
+              ),
+            ),
+            padding: const EdgeInsets.all(10),
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${appointment['title']}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "${appointment['date']}",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${appointment['contact']}",
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    Text(
+                      "${appointment['location']}",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       child: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
         future: appointmentsByDay,
         builder: (context, snapshot) {
@@ -150,6 +314,7 @@ Widget build(BuildContext context) {
               final appointments = entry.value;
 
               return Column(
+                key: dayKeys[date],
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
@@ -163,8 +328,7 @@ Widget build(BuildContext context) {
                     ),
                   ),
                   if (appointments.isEmpty)
-                   Center(
-                    child:  Container(
+                    Container(
                       margin: const EdgeInsets.only(left: 10, top: 5),
                       child: const Text(
                         "No appointments found.",
@@ -173,134 +337,21 @@ Widget build(BuildContext context) {
                           color: Colors.grey,
                         ),
                       ),
-                    ),
-                   ),
-                  ...appointments.map((appointment) {
-                    final appointmentColor = getStatusColor(appointment["status"]);
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: appointmentColor,
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(8),
-                                topLeft: Radius.circular(8),
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "${appointment["time"]} ",
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      "${appointment["status"]}",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          AppRoutes.editAppointment,
-                                          arguments: appointment["docId"],
-                                        );
-                                      },
-                                      child: const Icon(Icons.edit, size: 15, color: Colors.white),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    GestureDetector(
-                                      onTap: isDeleting ? null : () {
-                                        if (appointment["docId"] != null) {
-                                          deleteAppointment(appointment["docId"]);
-                                        } else {
-                                          print("Error: Appointment ID is null");
-                                        }
-                                      },
-                                      child: isDeleting
-                                          ? const SizedBox(
-                                              width: 15, height: 15,
-                                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
-                                            )
-                                          : const Icon(Icons.delete, size: 15, color: Colors.red),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: appointmentColor.withOpacity(0.15),
-                              borderRadius: const BorderRadius.only(
-                                bottomRight: Radius.circular(5),
-                                bottomLeft: Radius.circular(5),
-                              ),
-                            ),
-                            padding: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
-                            width: double.infinity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "${appointment['title']}",
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      "${appointment['date']}",
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "${appointment['contact']}",
-                                      style: Theme.of(context).textTheme.bodyLarge,
-                                    ),
-                                    Text(
-                                      "${appointment['location']}",
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                    )
+                  else
+                    ...appointments.map((appointment) => buildAppointmentCard(appointment)),
                 ],
               );
             }).toList(),
           );
         },
       ),
-    ),
-  );
-}
+    );
+  }
+
+  @override
+  void dispose() {
+    // Don't dispose the ScrollController as it's managed by parent
+    super.dispose();
+  }
 }

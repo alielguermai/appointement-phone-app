@@ -1,5 +1,6 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/core/widgets/search_button.dart';
+import 'package:appointement_phone_app/features/contacts/views/friends.dart';
 import 'package:appointement_phone_app/features/contacts/widgets/all_contacts.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:flutter/material.dart';
@@ -20,18 +21,45 @@ class _ContactViewState extends State<ContactView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Contact'),
-            IconButton(
+            Row(
+              children: [
+                 IconButton(
               onPressed: (){
                 Navigator.of(context).pushNamed(AppRoutes.AddContactPage);
               },
               icon: Icon(Icons.add),
+            ),
+            IconButton(
+              onPressed: (){
+                Navigator.pushNamed(context, AppRoutes.FriendsRequestPgae);
+              },
+              icon: Icon(Icons.person_add_outlined),
+            )
+              ],
             )
           ],
         ),
         backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       ),
       backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
-      body: Container(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Text('Accout Contacts'),
+            Friends(),
+            Text('Phone Contacts'),
+            AllContacts(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+/*
+
+Container(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -40,12 +68,20 @@ class _ContactViewState extends State<ContactView> {
               decoration: TAppTheme.lightBoxShadow,
               child: SearchButton(),
             ),
+            TextButton(
+              onPressed: (){
+                Navigator.pushNamed(context, AppRoutes.FriendsRequestPgae);
+              },
+              child: Icon(Icons.contacts),
+            ),
+            Friends(),
             Expanded(
               child: AllContacts(),
             )
           ],
         ),
       ),
-    );
-  }
-}
+
+
+
+      */

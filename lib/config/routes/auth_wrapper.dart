@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:appointement_phone_app/features/auth/views/login_view.dart';
 import 'package:appointement_phone_app/features/landingPage/landing_page.dart';
 import 'package:appointement_phone_app/index.dart';
 

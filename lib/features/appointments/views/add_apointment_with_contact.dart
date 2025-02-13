@@ -10,23 +10,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-class AddAppointment extends StatefulWidget {
+class AddAppointmentsWithContact extends StatefulWidget {
 
   final String? contact;
-  final String? id;
 
-  const AddAppointment({
+  const AddAppointmentsWithContact({
     super.key,
     this.contact,
-    this.id,
   });
 
 
   @override
-  State<AddAppointment> createState() => _AddAppointment();
+  State<AddAppointmentsWithContact> createState() => _AddAppointmentsWithContact();
 }
 
-class _AddAppointment extends State<AddAppointment> {
+class _AddAppointmentsWithContact extends State<AddAppointmentsWithContact> {
   final NotiService notiService = NotiService();
 
   final List<String> meetingTypes = [
@@ -221,7 +219,6 @@ class _AddAppointment extends State<AddAppointment> {
         "createdAt": FieldValue.serverTimestamp(),
         "userId": user.uid,
         'reminderPreference': _reminderPreference,
-        if (widget.id != null) 'contactId': widget.id, 
       };
 
       await firestore.collection("appointments").add(appointmentData);

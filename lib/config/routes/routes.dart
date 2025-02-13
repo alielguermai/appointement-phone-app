@@ -10,4 +10,5 @@ class AppRoutes {
   static const String notificationPage = '/notifications';
   static const String AddContactPage = '/addContact';
   static const String LoginEmailPage = '/emailLoginPage';
+  static const String FriendsRequestPgae = '/friendsRequest';
 }

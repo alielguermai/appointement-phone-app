@@ -1,11 +1,7 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
-import 'package:appointement_phone_app/core/widgets/table_calendar.dart';
 import 'package:appointement_phone_app/features/appointments/views/next_day_appointments.dart';
 import 'package:appointement_phone_app/features/appointments/views/today_appointements.dart';
-import 'package:appointement_phone_app/features/appointments/views/tomorrow_appointements.dart';
-import 'package:appointement_phone_app/features/appointments/widgets/day_appointments.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/test.dart';
-import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +16,8 @@ class CalendarView extends StatefulWidget {
 class _CalendarViewState extends State<CalendarView> {
   final List<String> titles = ['All', 'Personal', 'Business'];
   int selectedIndex = 0;
+  final ScrollController _scrollController = ScrollController();
+  DateTime selectedDate = DateTime.now();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseAuth _auth = FirebaseAuth.instance;
@@ -38,8 +36,8 @@ class _CalendarViewState extends State<CalendarView> {
 
   void loadUserData() async {
     User? user = _auth.currentUser;
-    Map<String, dynamic> ? userData = await getUserData();
-    if (userData != null){
+    Map<String, dynamic>? userData = await getUserData();
+    if (userData != null) {
       setState(() {
         UserName = userData['name'] ?? '';
       });
@@ -48,10 +46,34 @@ class _CalendarViewState extends State<CalendarView> {
     }
   }
 
+  void onDateSelected(DateTime date) {
+    setState(() {
+      selectedDate = date;
+    });
+    // Calculate the index of the selected date
+    int daysDifference = date.difference(DateTime.now()).inDays;
+    if (daysDifference > 0) {
+      // Calculate approximate scroll position (adjust these values based on your layout)
+      double approximateItemHeight = 150.0; // Height of each day's appointments section
+      double scrollPosition = (daysDifference - 1) * approximateItemHeight;
+      _scrollController.animateTo(
+        scrollPosition,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     loadUserData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,64 +87,70 @@ class _CalendarViewState extends State<CalendarView> {
               width: 35,
               height: 35,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50), // Border radius for the container
+                borderRadius: BorderRadius.circular(50),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(50), // Border radius for the image
+                borderRadius: BorderRadius.circular(50),
                 child: Image.network(
                   'https://icon-library.com/images/default-profile-icon/default-profile-icon-24.jpg',
-                  fit: BoxFit.cover, // Ensures the image fills the container without distortion
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-            SizedBox(
-              width: 10,
-            ),
+            SizedBox(width: 10),
             Text(
               "${UserName}",
-              style: TextStyle(
-                color: Colors.white,
-              ),
+              style: TextStyle(color: Colors.grey.shade600),
             ),
           ],
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
         actions: [
           TextButton(
-            onPressed:(){
+            onPressed: () {
               Navigator.of(context).pushNamed(AppRoutes.newAppointment);
-            }
-            ,
+            },
             style: ButtonStyle(
-              backgroundColor: WidgetStateColor.transparent
+                backgroundColor: WidgetStateColor.transparent
             ),
             child: Text(
               'Add',
               style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.bold
               ),
             ),
           ),
           IconButton(
-            onPressed: (){
-              Navigator.pushNamed(context, AppRoutes.notificationPage);
-            },
-            icon: Icon(Icons.notification_important_sharp, color: Colors.white,)
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.notificationPage);
+              },
+              icon: Icon(Icons.notification_important_sharp, color: Colors.grey.shade600)
           )
         ],
       ),
       body: Column(
         children: [
-          WeekCalendarPage(), // This will stay fixed
+          WeekCalendarPage(
+            selectedDate: selectedDate,
+            onDateSelected: onDateSelected,
+          ),
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TodayAppointments(),
-                  //NextDaysAppointments(numberOfDays: 7)
-                  NextDaysAppointments(numberOfDays: 7,)
+                  NextDaysAppointments(
+                    numberOfDays: 7,
+                    scrollController: _scrollController,
+                    onDayVisible: (DateTime date) {
+                      setState(() {
+                        selectedDate = date;
+                      });
+                    },
+                  )
                 ],
               ),
             ),
@@ -130,9 +158,5 @@ class _CalendarViewState extends State<CalendarView> {
         ],
       ),
     );
-
-    
   }
 }
-
-
