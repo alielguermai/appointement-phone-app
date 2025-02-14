@@ -48,7 +48,7 @@ class _ContactViewState extends State<ContactView> {
             Text('Accout Contacts'),
             Friends(),
             Text('Phone Contacts'),
-            AllContacts(),
+            //AllContacts(),
           ],
         ),
       ),

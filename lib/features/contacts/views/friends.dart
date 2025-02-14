@@ -73,7 +73,7 @@ class _FriendsState extends State<Friends> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddAppointment(contact: friend['name'],),
+                        builder: (context) => AddAppointment(contact: friend['name'], id: friend['id']),
                       )
                     );
                   },

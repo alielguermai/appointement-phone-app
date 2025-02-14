@@ -141,7 +141,7 @@ class _CalendarViewState extends State<CalendarView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TodayAppointments(),
+                  //TodayAppointments(),
                   NextDaysAppointments(
                     numberOfDays: 7,
                     scrollController: _scrollController,

@@ -202,6 +202,8 @@ class _AddAppointment extends State<AddAppointment> {
       final user = FirebaseAuth.instance.currentUser;
       final uuid = Uuid();
 
+      print(widget.id);
+
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You must be logged in to create an appointment.')));
         return;
@@ -221,10 +223,21 @@ class _AddAppointment extends State<AddAppointment> {
         "createdAt": FieldValue.serverTimestamp(),
         "userId": user.uid,
         'reminderPreference': _reminderPreference,
-        if (widget.id != null) 'contactId': widget.id, 
+        'contactId': widget.id, 
+        'test': 'test'
       };
 
       await firestore.collection("appointments").add(appointmentData);
+
+      // send the notification
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'receiverId' : widget.id,
+        'senderId': user.uid,
+        'type': 'New Appointment',
+        'message': 'You have a new Appointment scudeld',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+      });
 
       // success message
       ScaffoldMessenger.of(context).showSnackBar(

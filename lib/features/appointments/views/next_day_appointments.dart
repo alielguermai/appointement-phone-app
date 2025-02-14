@@ -1,5 +1,7 @@
+import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 
 class NextDaysAppointments extends StatefulWidget {
@@ -25,6 +27,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   bool isDeleting = false;
   Map<String, GlobalKey> dayKeys = {};
 
+  /*
   @override
   void initState() {
     super.initState();
@@ -45,6 +48,36 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     appointmentsByDay = fetchAppointmentsForMultipleDays();
     _setupScrollListener();
   }
+  */
+
+  @override
+  void initState() {
+    super.initState();
+    formattedDates = [];
+    dbDates = [];
+    dayKeys = {};
+
+    // Get the current date
+    DateTime now = DateTime.now();
+
+    // Determine the start of the current week (assuming the week starts on Monday)
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1)); // Monday
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6)); // Sunday
+
+    // Generate dates for the current week
+    for (DateTime date = startOfWeek; date.isBefore(endOfWeek.add(Duration(days: 1))); date = date.add(Duration(days: 1))) {
+      String formattedDate = DateFormat('E d').format(date);
+      String dbDate = DateFormat('yyyy-M-d').format(date);
+
+      formattedDates.add(formattedDate);
+      dbDates.add(dbDate);
+      dayKeys[formattedDate] = GlobalKey();
+    }
+
+    appointmentsByDay = fetchAppointmentsForMultipleDays();
+    _setupScrollListener();
+  }
+
 
   void _setupScrollListener() {
     widget.scrollController.addListener(() {
@@ -53,27 +86,27 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   }
 
   void _checkVisibleDates() {
-    if (!mounted) return;
+  if (!mounted) return;
 
-    for (String formattedDate in formattedDates) {
-      final key = dayKeys[formattedDate];
-      if (key?.currentContext != null) {
-        final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
-        final position = box.localToGlobal(Offset.zero);
+  for (String formattedDate in formattedDates) {
+    final key = dayKeys[formattedDate];
+    if (key?.currentContext != null) {
+      final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
+      final RenderAbstractViewport viewport = RenderAbstractViewport.of(box)!;
+      final double offset = viewport.getOffsetToReveal(box, 0.5).offset;
 
-        // Check if this date section is visible in the viewport
-        if (position.dy >= 0 && position.dy <= MediaQuery.of(context).size.height) {
-          // Find the corresponding DateTime object
-          int index = formattedDates.indexOf(formattedDate);
-          if (index != -1) {
-            DateTime visibleDate = DateTime.now().add(Duration(days: index + 1));
-            widget.onDayVisible?.call(visibleDate);
-            break;
-          }
+      if (offset >= 0 && offset <= MediaQuery.of(context).size.height) {
+        int index = formattedDates.indexOf(formattedDate);
+        if (index != -1) {
+          DateTime visibleDate = DateTime.now().add(Duration(days: index + 1));
+          widget.onDayVisible?.call(visibleDate);
+          break;
         }
       }
     }
   }
+}
+
 
   Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
     try {
@@ -200,7 +233,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                       onTap: () {
                         Navigator.pushNamed(
                           context,
-                          'edit_appointment',
+                          AppRoutes.editAppointment,
                           arguments: appointment["docId"],
                         );
                       },

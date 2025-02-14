@@ -1,3 +1,4 @@
+import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_button.dart';
 import 'package:appointement_phone_app/features/appointments/widgets/custom_text_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,6 +58,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
   late String selectedContact = '';
   late String selectedDate = '';
   late String selectedTime = '';
+  late String contactId = '';
   late String selectedStatus = statusOptions.isNotEmpty ? statusOptions.first : '';
   late String? _reminderPreference;
 
@@ -90,6 +92,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
           selectedDate = appointmentData["date"] ?? '';
           selectedTime = appointmentData["time"] ?? '';
           selectedStatus = appointmentData["status"] ?? '';
+          contactId = appointmentData["contactId"] ?? '';
           _reminderPreference = appointmentData["reminderPreference"];
         });
       } else {
@@ -252,21 +255,34 @@ class _EditAppointmentsState extends State<EditAppointments> {
         "location": selectedLocationType,
         "category": selectedCategorieType,
         "status": selectedStatus, // Add the selected status
-        "createdAt": FieldValue.serverTimestamp(),
-        "userId": user.uid,
+        "UpdatedAt": FieldValue.serverTimestamp(),
         'reminderPreference': _reminderPreference,
       };
 
-      await firestore.collection("appointments").doc(docId).update(updatedAppointmentData);
-      Navigator.of(context).pop();
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'receiverId' : contactId,
+        'senderId': user.uid,
+        'type': 'Appointment Updated',
+        'message': 'The Appointment have been Update',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+      });
 
-      /*
       // Success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Appointment updated successfully!")),
         );
       }
+
+      await firestore.collection("appointments").doc(docId).update(updatedAppointmentData);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.homePageRoute,
+        (Route<dynamic> route) => false,
+      );
+      /*
+      // Success message
+      
       */
 
     } catch (e) {
