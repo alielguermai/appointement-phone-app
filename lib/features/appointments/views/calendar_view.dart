@@ -143,7 +143,6 @@ class _CalendarViewState extends State<CalendarView> {
                 children: [
                   //TodayAppointments(),
                   NextDaysAppointments(
-                    numberOfDays: 7,
                     scrollController: _scrollController,
                     onDayVisible: (DateTime date) {
                       setState(() {

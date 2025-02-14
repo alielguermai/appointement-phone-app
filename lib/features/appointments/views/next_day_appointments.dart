@@ -50,27 +50,31 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   }
   */
 
+  late final List<DateTime> dateTimes; // Add this line
+
   @override
   void initState() {
     super.initState();
     formattedDates = [];
     dbDates = [];
+    dateTimes = [];
     dayKeys = {};
 
-    // Get the current date
+
     DateTime now = DateTime.now();
 
-    // Determine the start of the current week (assuming the week starts on Monday)
-    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1)); // Monday
-    DateTime endOfWeek = startOfWeek.add(Duration(days: 6)); // Sunday
+  
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
 
-    // Generate dates for the current week
+
     for (DateTime date = startOfWeek; date.isBefore(endOfWeek.add(Duration(days: 1))); date = date.add(Duration(days: 1))) {
       String formattedDate = DateFormat('E d').format(date);
       String dbDate = DateFormat('yyyy-M-d').format(date);
 
       formattedDates.add(formattedDate);
       dbDates.add(dbDate);
+      dateTimes.add(date);
       dayKeys[formattedDate] = GlobalKey();
     }
 
@@ -86,26 +90,29 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   }
 
   void _checkVisibleDates() {
-  if (!mounted) return;
+    if (!mounted) return;
 
-  for (String formattedDate in formattedDates) {
-    final key = dayKeys[formattedDate];
-    if (key?.currentContext != null) {
-      final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
-      final RenderAbstractViewport viewport = RenderAbstractViewport.of(box)!;
-      final double offset = viewport.getOffsetToReveal(box, 0.5).offset;
+    for (String formattedDate in formattedDates) {
+      final key = dayKeys[formattedDate];
+      if (key?.currentContext != null) {
+        final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
+        final RenderAbstractViewport viewport = RenderAbstractViewport.of(box)!;
+        final double offset = viewport.getOffsetToReveal(box, 0.5).offset;
 
-      if (offset >= 0 && offset <= MediaQuery.of(context).size.height) {
-        int index = formattedDates.indexOf(formattedDate);
-        if (index != -1) {
-          DateTime visibleDate = DateTime.now().add(Duration(days: index + 1));
-          widget.onDayVisible?.call(visibleDate);
-          break;
+        if (offset >= 0 && offset <= MediaQuery.of(context).size.height) {
+          int index = formattedDates.indexOf(formattedDate);
+          if (index != -1) {
+            DateTime visibleDate = DateTime.now().add(Duration(days: index + 1));
+            widget.onDayVisible?.call(visibleDate);
+
+            // Print the visible date
+            print("Currently visible date: ${DateFormat('yyyy-M-d').format(visibleDate)}");
+            break;
+          }
         }
       }
     }
   }
-}
 
 
   Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
