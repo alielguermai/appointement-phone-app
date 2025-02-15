@@ -18,6 +18,7 @@ class _CalendarViewState extends State<CalendarView> {
   int selectedIndex = 0;
   final ScrollController _scrollController = ScrollController();
   DateTime selectedDate = DateTime.now();
+  DateTime? _lastNavigatedDate; // Add this to store the last navigated date
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseAuth _auth = FirebaseAuth.instance;
@@ -45,8 +46,6 @@ class _CalendarViewState extends State<CalendarView> {
       print("User data not found");
     }
   }
-
-  
 
   @override
   void initState() {
@@ -117,6 +116,11 @@ class _CalendarViewState extends State<CalendarView> {
         children: [
           WeekCalendarPage(
             selectedDate: selectedDate,
+            onWeekNavigated: (date) {
+              setState(() {
+                _lastNavigatedDate = date; // Update the last navigated date
+              });
+            },
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -125,7 +129,7 @@ class _CalendarViewState extends State<CalendarView> {
                 children: [
                   //TodayAppointments(),
                   NextDaysAppointments(
-                    
+                    week: _lastNavigatedDate ?? selectedDate, // Pass the last navigated date or the default selected date
                   ),
                 ],
               ),

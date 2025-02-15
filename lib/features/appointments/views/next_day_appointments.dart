@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 
 class NextDaysAppointments extends StatefulWidget {
   final int numberOfDays;
+  final DateTime week;
 
   const NextDaysAppointments({
     super.key,
     this.numberOfDays = 3,
+    required this.week,
   });
 
   @override
@@ -17,8 +19,8 @@ class NextDaysAppointments extends StatefulWidget {
 
 class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   late Future<Map<String, List<Map<String, dynamic>>>> appointmentsByDay;
-  late final List<String> formattedDates;
-  late final List<String> dbDates;
+  List<String> formattedDates = [];
+  List<String> dbDates = [];
   bool isDeleting = false;
   Map<String, GlobalKey> dayKeys = {};
 
@@ -27,12 +29,18 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   @override
   void initState() {
     super.initState();
-    formattedDates = [];
-    dbDates = [];
-    dateTimes = [];
-    dayKeys = {};
+    _initializeData();
+    appointmentsByDay = fetchAppointmentsForMultipleDays();
+  }
 
-    DateTime now = DateTime.now();
+  void _updateData() {
+    // Clear existing data
+    formattedDates.clear();
+    dbDates.clear();
+    dateTimes.clear();
+    dayKeys.clear();
+
+    DateTime now = widget.week;
     DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
 
@@ -45,8 +53,40 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
       dateTimes.add(date);
       dayKeys[formattedDate] = GlobalKey();
     }
+  }
 
-    appointmentsByDay = fetchAppointmentsForMultipleDays();
+  @override
+  void didUpdateWidget(NextDaysAppointments oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if the week parameter has changed
+    if (widget.week != oldWidget.week) {
+      _updateData(); // Reinitialize dates
+      setState(() {
+        appointmentsByDay = fetchAppointmentsForMultipleDays(); // Refetch appointments
+      });
+    }
+  }
+
+  void _initializeData() {
+    formattedDates = [];
+    dbDates = [];
+    dateTimes = [];
+    dayKeys = {};
+
+    DateTime now = widget.week;
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+
+    for (DateTime date = startOfWeek; date.isBefore(endOfWeek.add(Duration(days: 1))); date = date.add(Duration(days: 1))) {
+      String formattedDate = DateFormat('E d').format(date);
+      String dbDate = DateFormat('yyyy-M-d').format(date);
+
+      formattedDates.add(formattedDate);
+      dbDates.add(dbDate);
+      dateTimes.add(date);
+      dayKeys[formattedDate] = GlobalKey();
+    }
   }
 
   Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
@@ -274,8 +314,15 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text("No appointments found."),
+            return Container(
+              margin: const EdgeInsets.only(left: 10, top: 5),
+              child: const Text(
+                "No appointments found.",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
             );
           }
 
@@ -304,6 +351,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                   if (appointments.isEmpty)
                     Container(
                       margin: const EdgeInsets.only(left: 10, top: 5),
+                      width: double.infinity,
                       child: const Text(
                         "No appointments found.",
                         style: TextStyle(

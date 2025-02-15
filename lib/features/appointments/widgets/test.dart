@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 class WeekCalendarPage extends StatefulWidget {
   final DateTime? selectedDate;
   final Function(DateTime)? onDateSelected;
+  final Function(DateTime)? onWeekNavigated;
 
   const WeekCalendarPage({
     super.key,
     this.selectedDate,
     this.onDateSelected,
+    this.onWeekNavigated,
   });
 
   @override
@@ -17,12 +19,14 @@ class WeekCalendarPage extends StatefulWidget {
 
 class _WeekCalendarPageState extends State<WeekCalendarPage> {
   late DateTime _selectedDate;
-  DateTime startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+  late DateTime startOfWeek;
+  DateTime _lastNavigatedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _selectedDate = widget.selectedDate ?? DateTime.now();
+    startOfWeek = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
   }
 
   @override
@@ -31,36 +35,31 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
     if (widget.selectedDate != null && widget.selectedDate != _selectedDate) {
       setState(() {
         _selectedDate = widget.selectedDate!;
+        startOfWeek = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
       });
     }
   }
 
-  /*
-
-  DateTime get startOfWeek {
-    return _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
-  }
-
-  */
-
   void _nextWeek() {
     setState(() {
       startOfWeek = startOfWeek.add(const Duration(days: 7));
+      _lastNavigatedDate = startOfWeek;
     });
+    widget.onWeekNavigated?.call(_lastNavigatedDate); // Notify parent widget
   }
 
   void _previousWeek() {
     setState(() {
       startOfWeek = startOfWeek.subtract(const Duration(days: 7));
+      _lastNavigatedDate = startOfWeek;
     });
+    widget.onWeekNavigated?.call(_lastNavigatedDate); // Notify parent widget
   }
 
   void _selectDate(DateTime date) {
     setState(() {
       _selectedDate = date;
-      if (widget.onDateSelected != null) {
-        widget.onDateSelected!(date);
-      }
+      widget.onDateSelected?.call(date);
     });
   }
 
@@ -72,9 +71,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
 
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+    return date.year == now.year && date.month == now.month && date.day == now.day;
   }
 
   Widget _buildWeekDayName(String day) {
@@ -82,10 +79,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
       child: Center(
         child: Text(
           day,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
       ),
     );
@@ -107,8 +101,8 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
               backgroundColor: isSelected
                   ? Colors.blue
                   : isToday
-                  ? Colors.blue.withOpacity(0.1)
-                  : Colors.transparent,
+                      ? Colors.blue.withOpacity(0.1)
+                      : Colors.transparent,
               shape: const CircleBorder(),
               padding: const EdgeInsets.all(10),
             ),
@@ -117,11 +111,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                color: isSelected
-                    ? Colors.white
-                    : isToday
-                    ? Colors.blue
-                    : Colors.black,
+                color: isSelected ? Colors.white : isToday ? Colors.blue : Colors.black,
               ),
             ),
           ),
@@ -143,10 +133,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
           ),
           Text(
             DateFormat('MMMM yyyy').format(_selectedDate),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
@@ -160,10 +147,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final weekDays = List.generate(
-      7,
-          (index) => startOfWeek.add(Duration(days: index)),
-    );
+    final weekDays = List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
 
     return Container(
       padding: const EdgeInsets.all(10),
