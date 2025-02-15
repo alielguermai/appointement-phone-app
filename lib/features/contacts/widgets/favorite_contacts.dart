@@ -147,14 +147,14 @@ class _FavoriteContactsState extends State<FavoriteContacts> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Favorite Contacts'),
+        title: const Text('Favorite Contacts', style: TextStyle(color: Colors.white),),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _toggleContactsVisibility, // Toggle visibility on button press
+            icon: const Icon(Icons.add, color: Colors.white,),
+            onPressed: _toggleContactsVisibility,
           ),
         ],
-        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
+        backgroundColor: Colors.blue,
       ),
       body: Column(
         children: [

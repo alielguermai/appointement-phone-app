@@ -46,23 +46,7 @@ class _CalendarViewState extends State<CalendarView> {
     }
   }
 
-  void onDateSelected(DateTime date) {
-    setState(() {
-      selectedDate = date;
-    });
-    // Calculate the index of the selected date
-    int daysDifference = date.difference(DateTime.now()).inDays;
-    if (daysDifference > 0) {
-      // Calculate approximate scroll position (adjust these values based on your layout)
-      double approximateItemHeight = 150.0; // Height of each day's appointments section
-      double scrollPosition = (daysDifference - 1) * approximateItemHeight;
-      _scrollController.animateTo(
-        scrollPosition,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
+  
 
   @override
   void initState() {
@@ -100,11 +84,11 @@ class _CalendarViewState extends State<CalendarView> {
             SizedBox(width: 10),
             Text(
               "${UserName}",
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: Colors.white),
             ),
           ],
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
         actions: [
           TextButton(
             onPressed: () {
@@ -116,7 +100,7 @@ class _CalendarViewState extends State<CalendarView> {
             child: Text(
               'Add',
               style: TextStyle(
-                  color: Colors.grey.shade600,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold
               ),
             ),
@@ -125,7 +109,7 @@ class _CalendarViewState extends State<CalendarView> {
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.notificationPage);
               },
-              icon: Icon(Icons.notification_important_sharp, color: Colors.grey.shade600)
+              icon: Icon(Icons.notification_important_sharp, color: Colors.white)
           )
         ],
       ),
@@ -133,23 +117,16 @@ class _CalendarViewState extends State<CalendarView> {
         children: [
           WeekCalendarPage(
             selectedDate: selectedDate,
-            onDateSelected: onDateSelected,
           ),
           Expanded(
             child: SingleChildScrollView(
-              controller: _scrollController,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   //TodayAppointments(),
                   NextDaysAppointments(
-                    scrollController: _scrollController,
-                    onDayVisible: (DateTime date) {
-                      setState(() {
-                        selectedDate = date;
-                      });
-                    },
-                  )
+                    
+                  ),
                 ],
               ),
             ),

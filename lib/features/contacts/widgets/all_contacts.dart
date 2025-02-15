@@ -1,3 +1,4 @@
+import 'package:appointement_phone_app/features/appointments/views/add_apointment_contact.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -117,7 +118,14 @@ class _AllContactsState extends State<AllContacts> {
                     ),
                     Spacer(), // Push the button to the end
                     IconButton(
-                      onPressed: contact.phones.isNotEmpty ? () => _makePhoneCall(contact.phones.first.number) : null,
+                      onPressed: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddApointmentContact(contact: contact.displayName),
+                          )
+                        );
+                      },
                       icon: Icon(Icons.add),
                     ),
                   ],

@@ -13,8 +13,10 @@ class _AddContactState extends State<AddContact> {
 
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
   DocumentSnapshot? searchedUser;
+  List<QueryDocumentSnapshot> searchedUsers = [];
 
   /// Search for user by phone number
   Future<void> searchUserByPhoneNumber() async {
@@ -43,6 +45,36 @@ class _AddContactState extends State<AddContact> {
       );
     }
   }
+
+  Future<void> searchUserByName() async {
+  String userName = nameController.text.trim();
+
+  if (userName.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Please enter a name")),
+    );
+    return;
+  }
+
+  final usersRef = FirebaseFirestore.instance.collection('users');
+  final querySnapshot = await usersRef
+      .where('name', isGreaterThanOrEqualTo: userName)
+      .where('name', isLessThan: userName + 'z') // 'z' ensures the upper bound
+      .get();
+
+  if (querySnapshot.docs.isNotEmpty) {
+    setState(() {
+      searchedUsers = querySnapshot.docs; // Store all matching users
+    });
+  } else {
+    setState(() {
+      searchedUsers = []; // Clear the list if no users are found
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("No users found starting with: $userName")),
+    );
+  }
+}
 
 
   /// Search for ser by email
@@ -111,13 +143,44 @@ class _AddContactState extends State<AddContact> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Contact'),
+        title: Text('Find Contact'),
         backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Search by Name
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Enter a Friend's name",
+                  prefixIcon: Icon(Icons.search),
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 10),
+
+            // Search by Phone Number
+            /*
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
@@ -128,38 +191,78 @@ class _AddContactState extends State<AddContact> {
             ),
             SizedBox(height: 10),
 
+            */
+            // Search by Email
+            /*
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                labelText: "Entre  address mail",
-                border: OutlineInputBorder()
+                labelText: "Enter email address",
+                border: OutlineInputBorder(),
               ),
             ),
-            ElevatedButton(
-              onPressed: searchUserByPhoneNumber,
-              child: Text("Search"),
-            ),
-            ElevatedButton(
-              onPressed: searchUserByEmail,
-              child: Text("Search"),
-            ),
+            SizedBox(height: 10),
+            */
 
+
+            // Search Buttons
+            /*
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                
+                ElevatedButton(
+                  onPressed: searchUserByPhoneNumber,
+                  child: Text("Search by Phone"),
+                ),
+                ElevatedButton(
+                  onPressed: searchUserByEmail,
+                  child: Text("Search by Email"),
+                ),
+              ],
+            ),
+            */
+
+            ElevatedButton(
+              onPressed: searchUserByName,
+              child: Text("Search by Name"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white
+              ),
+            ),
             SizedBox(height: 20),
 
-            if (searchedUser != null) ...[
-              Text("User Found: ${searchedUser!['name']}"),
-              Text("User ID: ${searchedUser!.id}"),
-              SizedBox(height: 10),
-
-              ElevatedButton(
-                onPressed: () {
-
-                  sendFriendRequest(searchedUser!.id);
-                },
-                child: Text("Send Friend Request"),
-              ),
-            ],
+            // Display Search Results
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white
+                ),
+                child: ListView.builder(
+                  itemCount: searchedUsers.length,
+                  itemBuilder: (context, index) {
+                    var user = searchedUsers[index].data() as Map<String, dynamic>;
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 5),
+                      color: Colors.white,
+                      child: ListTile(
+                        title: Text(user['name']),
+                        subtitle: Text(user['email'] ?? user['phoneNumber']),
+                        trailing: ElevatedButton(
+                          onPressed: () => sendFriendRequest(searchedUsers[index].id),
+                          child: Text("Send Request", style: TextStyle(color: Colors.black54),),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white
+                          ),
+                     
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            ),
           ],
         ),
       ),

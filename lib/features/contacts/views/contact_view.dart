@@ -20,35 +20,38 @@ class _ContactViewState extends State<ContactView> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Contact'),
+            Text('Contact', style: TextStyle(color: Colors.white),),
             Row(
               children: [
                  IconButton(
               onPressed: (){
                 Navigator.of(context).pushNamed(AppRoutes.AddContactPage);
               },
-              icon: Icon(Icons.add),
+              icon: Icon(Icons.add, color: Colors.white,),
             ),
             IconButton(
               onPressed: (){
                 Navigator.pushNamed(context, AppRoutes.FriendsRequestPgae);
               },
-              icon: Icon(Icons.person_add_outlined),
+              icon: Icon(Icons.person_add_outlined, color: Colors.white,),
             )
               ],
             )
           ],
         ),
-        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
+        backgroundColor: Colors.blue,
       ),
       backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
+            SizedBox(
+              height: 20,
+            ),
             Text('Accout Contacts'),
             Friends(),
             Text('Phone Contacts'),
-            //AllContacts(),
+            AllContacts(),
           ],
         ),
       ),

@@ -17,6 +17,7 @@ class WeekCalendarPage extends StatefulWidget {
 
 class _WeekCalendarPageState extends State<WeekCalendarPage> {
   late DateTime _selectedDate;
+  DateTime startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
 
   @override
   void initState() {
@@ -34,25 +35,23 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
     }
   }
 
+  /*
+
   DateTime get startOfWeek {
     return _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
   }
 
+  */
+
   void _nextWeek() {
     setState(() {
-      _selectedDate = _selectedDate.add(const Duration(days: 7));
-      if (widget.onDateSelected != null) {
-        widget.onDateSelected!(_selectedDate);
-      }
+      startOfWeek = startOfWeek.add(const Duration(days: 7));
     });
   }
 
   void _previousWeek() {
     setState(() {
-      _selectedDate = _selectedDate.subtract(const Duration(days: 7));
-      if (widget.onDateSelected != null) {
-        widget.onDateSelected!(_selectedDate);
-      }
+      startOfWeek = startOfWeek.subtract(const Duration(days: 7));
     });
   }
 
