@@ -1,5 +1,6 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -92,20 +93,50 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
     try {
       final firestore = FirebaseFirestore.instance;
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser == null) {
+        print("No user is logged in.");
+        return {};
+      }
+
+      String currentUserId = currentUser.uid;
       Map<String, List<Map<String, dynamic>>> results = {};
 
       for (int i = 0; i < dbDates.length; i++) {
-        final querySnapshot = await firestore
+        // Lists to store results
+        List<Map<String, dynamic>> combinedResults = [];
+
+        // Fetch appointments where userId matches
+        final userQuerySnapshot = await firestore
             .collection("appointments")
             .where("date", isEqualTo: dbDates[i])
+            .where("userId", isEqualTo: currentUserId)
             .get();
 
-        results[formattedDates[i]] = querySnapshot.docs.map((doc) {
-          return {
-            "docId": doc.id,
-            ...doc.data() as Map<String, dynamic>,
-          };
-        }).toList();
+        // Fetch appointments where contactId matches
+        final contactQuerySnapshot = await firestore
+            .collection("appointments")
+            .where("date", isEqualTo: dbDates[i])
+            .where("contactId", isEqualTo: currentUserId)
+            .get();
+
+        // Convert Firestore docs to maps and merge
+        combinedResults.addAll(userQuerySnapshot.docs.map((doc) => {
+              "docId": doc.id,
+              ...doc.data(),
+            }));
+
+        combinedResults.addAll(contactQuerySnapshot.docs.map((doc) => {
+              "docId": doc.id,
+              ...doc.data(),
+            }));
+
+        // Remove duplicates
+        final uniqueResults = {for (var item in combinedResults) item["docId"]: item}.values.toList();
+
+        // Store in results map
+        results[formattedDates[i]] = uniqueResults;
       }
 
       return results;
@@ -115,15 +146,20 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     }
   }
 
+
+
+
   void deleteAppointment(String docId) async {
     if (docId.isEmpty) {
       print("Error: Document ID is empty");
       return;
     }
 
+    /*
     setState(() {
       isDeleting = true;
     });
+    */
 
     try {
       await FirebaseFirestore.instance
@@ -171,124 +207,119 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   }
 
   Widget buildAppointmentCard(Map<String, dynamic> appointment) {
-    final appointmentColor = getStatusColor(appointment["status"]);
+  final appointmentColor = getStatusColor(appointment["status"]);
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: appointmentColor,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(8),
-                topLeft: Radius.circular(8),
+  return Dismissible(
+      key: Key(appointment["docId"]),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      onDismissed: (direction) {
+        deleteAppointment(appointment["docId"]);
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: appointmentColor,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(8),
+                  topLeft: Radius.circular(8),
+                ),
               ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "${appointment["time"]} ",
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${appointment["time"]} ",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      "${appointment["status"]}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.editAppointment,
-                          arguments: appointment["docId"],
-                        );
-                      },
-                      child: const Icon(Icons.edit, size: 15, color: Colors.white),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: isDeleting ? null : () {
-                        if (appointment["docId"] != null) {
-                          deleteAppointment(appointment["docId"]);
-                        }
-                      },
-                      child: isDeleting
-                          ? const SizedBox(
-                        width: 15,
-                        height: 15,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.red,
+                  Row(
+                    children: [
+                      Text(
+                        "${appointment["status"]}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
-                          : const Icon(Icons.delete, size: 15, color: Colors.red),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: appointmentColor.withOpacity(0.15),
-              borderRadius: const BorderRadius.only(
-                bottomRight: Radius.circular(5),
-                bottomLeft: Radius.circular(5),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.editAppointment,
+                            arguments: appointment["docId"],
+                          );
+                        },
+                        child: const Icon(Icons.edit, size: 15, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            padding: const EdgeInsets.all(10),
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${appointment['title']}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+            Container(
+              decoration: BoxDecoration(
+                color: appointmentColor.withOpacity(0.15),
+                borderRadius: const BorderRadius.only(
+                  bottomRight: Radius.circular(5),
+                  bottomLeft: Radius.circular(5),
+                ),
+              ),
+              padding: const EdgeInsets.all(10),
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${appointment['title']}",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      "${appointment['date']}",
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${appointment['contact']}",
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    Text(
-                      "${appointment['location']}",
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
+                      Text(
+                        "${appointment['date']}",
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${appointment['contact']}",
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      Text(
+                        "${appointment['location']}",
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

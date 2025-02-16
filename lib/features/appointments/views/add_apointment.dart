@@ -28,6 +28,7 @@ class AddAppointment extends StatefulWidget {
 
 class _AddAppointment extends State<AddAppointment> {
   final NotiService notiService = NotiService();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   final List<String> meetingTypes = [
     "Business Meeting",
@@ -44,7 +45,7 @@ class _AddAppointment extends State<AddAppointment> {
     "Room"
   ];
 
-  final List<String> categories = [
+  List<String> categories = [
     "Business",
     "Project",
     "Internship"
@@ -128,6 +129,26 @@ class _AddAppointment extends State<AddAppointment> {
     }
   }
 
+  // Get category
+  Future<void> fetchCategories() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print("Error: No user signed in.");
+        return;
+      }
+      final snapshot = await firestore.collection('categories').doc(user.uid).collection('userCategories').get();
+      List<String> fetchedCategories = snapshot.docs.map((doc) => doc['name'] as String).toList();
+
+      setState(() {
+        //categories.clear();
+        categories.addAll(fetchedCategories);
+      });
+
+    } catch (e) {
+      print("Error fetching categories: $e");
+    }
+  }
 
   // Generic method to show a bottom sheet and select an item from a list
   void _showSelectionList(List<String> options, Function(String) onSelected) {
@@ -240,20 +261,33 @@ class _AddAppointment extends State<AddAppointment> {
       });
 
       // success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Appointment created successfully!")),
-      );
+      _showSuccess("Appointment created successfully!");
+
       notiService.showNotification(
           title: 'Appointment created successfully for $selectedMeetingType',
           body: 'with $selectedContact'
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.homePageRoute,
+        (Route<dynamic> route) => false,
+      );
+
     } catch (e) {
       // error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to create appointment: $e")),
       );
     }
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _scheduleReminder(Map<String, dynamic> appointment) {
@@ -293,6 +327,7 @@ class _AddAppointment extends State<AddAppointment> {
     if (widget.contact != null){
       selectedContact = widget.contact!;
     }
+    fetchCategories();
   }
 
   @override

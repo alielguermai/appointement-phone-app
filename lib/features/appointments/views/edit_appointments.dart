@@ -269,11 +269,7 @@ class _EditAppointmentsState extends State<EditAppointments> {
       });
 
       // Success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Appointment updated successfully!")),
-        );
-      }
+      _showSuccess("Appointment updated successfully!");
 
       await firestore.collection("appointments").doc(docId).update(updatedAppointmentData);
       Navigator.of(context).pushNamedAndRemoveUntil(
@@ -291,6 +287,16 @@ class _EditAppointmentsState extends State<EditAppointments> {
         SnackBar(content: Text("Failed to update appointment: $e")),
       );
     }
+  }
+
+   void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
 

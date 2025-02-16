@@ -83,11 +83,11 @@ class _CalendarViewState extends State<CalendarView> {
             SizedBox(width: 10),
             Text(
               "${UserName}",
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.black54),
             ),
           ],
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
         actions: [
           TextButton(
             onPressed: () {
@@ -99,7 +99,7 @@ class _CalendarViewState extends State<CalendarView> {
             child: Text(
               'Add',
               style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black54,
                   fontWeight: FontWeight.bold
               ),
             ),
@@ -108,7 +108,7 @@ class _CalendarViewState extends State<CalendarView> {
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.notificationPage);
               },
-              icon: Icon(Icons.notification_important_sharp, color: Colors.white)
+              icon: Icon(Icons.notification_important_sharp, color: Colors.black54)
           )
         ],
       ),
