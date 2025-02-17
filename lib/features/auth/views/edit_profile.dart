@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -99,69 +98,167 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Edit Profile"),
-        backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
-                child: imageUrl == null ? Icon(Icons.camera_alt, size: 40) : null,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).primaryColor.withOpacity(0.8),
+              Theme.of(context).primaryColor.withOpacity(0.6),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom AppBar
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    Text(
+                      "Edit Profile",
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                label: Text('Username'),
-                hintText: username.isNotEmpty ? username : "Please enter your name",
-              ),
-              onChanged: (value) {
-                setState(() {
-                  username = value;
-                });
-              },
-            ),
-            SizedBox(height: 20),
 
-            TextField(
-              decoration: InputDecoration(
-                label: Text('User Phone number'),
-                hintText: phone_number.isNotEmpty ? phone_number : "Please Enter you  phone number",
-              ),
-              onChanged: (value){
-                setState(() {
-                  phone_number = value;
-                });
-              },
-            ),
-            SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        // Profile Image Section
+                        GestureDetector(
+                          onTap: pickImage,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 60,
+                                backgroundColor: Colors.white.withOpacity(0.9),
+                                backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
+                                child: imageUrl == null
+                                    ? const Icon(Icons.person, size: 60, color: Colors.blue)
+                                    : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.blue, width: 2),
+                                  ),
+                                  child: const Icon(Icons.camera_alt, size: 20, color: Colors.blue),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 40),
 
-            TextButton(
-              onPressed: () async {
-                if (username.isNotEmpty) {
-                  await saveUserData(username, imageUrl);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Profile Updated Successfully!')),
-                  );
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.editProfilePage,
-                    (Route<dynamic> route) => false,
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please fill in all fields')),
-                  );
-                }
-              },
-              child: Text('Update'),
-            ),
-          ],
+                        // Username TextField
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: username.isNotEmpty ? username : "Enter your name",
+                              hintText:  "Update your user Name",
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              prefixIcon: const Icon(Icons.person_outline),
+                            ),
+                            onChanged: (value) => setState(() => username = value),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Phone Number TextField
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              hintText: phone_number.isNotEmpty ? phone_number : "Enter your phone number",
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              prefixIcon: const Icon(Icons.phone_outlined),
+                            ),
+                            onChanged: (value) => setState(() => phone_number = value),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+
+                        // Update Button
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (username.isNotEmpty) {
+                              await saveUserData(username, imageUrl);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Profile Updated Successfully!')),
+                              );
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                AppRoutes.editProfilePage,
+                                    (Route<dynamic> route) => false,
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please fill in all fields')),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Theme.of(context).primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Update Profile',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

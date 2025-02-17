@@ -26,6 +26,8 @@ class AddAppointmentsWithContact extends StatefulWidget {
 
 class _AddAppointmentsWithContact extends State<AddAppointmentsWithContact> {
   final NotiService notiService = NotiService();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
 
   final List<String> meetingTypes = [
     "Business Meeting",
@@ -42,7 +44,7 @@ class _AddAppointmentsWithContact extends State<AddAppointmentsWithContact> {
     "Room"
   ];
 
-  final List<String> categories = [
+  List<String> categories = [
     "Business",
     "Project",
     "Internship"
@@ -94,6 +96,26 @@ class _AddAppointmentsWithContact extends State<AddAppointmentsWithContact> {
         // Format the time as HH:MM AM/PM
         selectedTime = pickedTime.format(context);
       });
+    }
+  }
+
+   Future<void> fetchCategories() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print("Error: No user signed in.");
+        return;
+      }
+      final snapshot = await firestore.collection('categories').doc(user.uid).collection('userCategories').get();
+      List<String> fetchedCategories = snapshot.docs.map((doc) => doc['name'] as String).toList();
+
+      setState(() {
+        //categories.clear();
+        categories.addAll(fetchedCategories);
+      });
+
+    } catch (e) {
+      print("Error fetching categories: $e");
     }
   }
 

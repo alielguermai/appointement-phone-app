@@ -62,6 +62,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Appointment demo',
       themeMode: ThemeMode.system,
       theme: TAppTheme.lightTheme,

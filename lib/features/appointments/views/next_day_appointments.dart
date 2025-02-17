@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 
 class NextDaysAppointments extends StatefulWidget {
   final int numberOfDays;
@@ -35,7 +36,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   }
 
   void _updateData() {
-    // Clear existing data
+
     formattedDates.clear();
     dbDates.clear();
     dateTimes.clear();
@@ -60,11 +61,11 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
   void didUpdateWidget(NextDaysAppointments oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Check if the week parameter has changed
+
     if (widget.week != oldWidget.week) {
-      _updateData(); // Reinitialize dates
+      _updateData();
       setState(() {
-        appointmentsByDay = fetchAppointmentsForMultipleDays(); // Refetch appointments
+        appointmentsByDay = fetchAppointmentsForMultipleDays();
       });
     }
   }
@@ -104,24 +105,22 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
       Map<String, List<Map<String, dynamic>>> results = {};
 
       for (int i = 0; i < dbDates.length; i++) {
-        // Lists to store results
+
         List<Map<String, dynamic>> combinedResults = [];
 
-        // Fetch appointments where userId matches
+
         final userQuerySnapshot = await firestore
             .collection("appointments")
             .where("date", isEqualTo: dbDates[i])
             .where("userId", isEqualTo: currentUserId)
             .get();
 
-        // Fetch appointments where contactId matches
         final contactQuerySnapshot = await firestore
             .collection("appointments")
             .where("date", isEqualTo: dbDates[i])
             .where("contactId", isEqualTo: currentUserId)
             .get();
 
-        // Convert Firestore docs to maps and merge
         combinedResults.addAll(userQuerySnapshot.docs.map((doc) => {
               "docId": doc.id,
               ...doc.data(),
@@ -132,10 +131,9 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
               ...doc.data(),
             }));
 
-        // Remove duplicates
+
         final uniqueResults = {for (var item in combinedResults) item["docId"]: item}.values.toList();
 
-        // Store in results map
         results[formattedDates[i]] = uniqueResults;
       }
 
@@ -167,7 +165,6 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
           .doc(docId)
           .delete();
 
-      // Re-fetch appointments
       final updatedAppointments = await fetchAppointmentsForMultipleDays();
 
       setState(() {
@@ -175,9 +172,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Appointment deleted successfully")),
-        );
+        _showSuccess("Appointment delted successfuly");
       }
     } catch (e) {
       print("Error deleting appointment: $e");
@@ -204,6 +199,17 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
       default:
         return Colors.grey;
     }
+  }
+
+  
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Widget buildAppointmentCard(Map<String, dynamic> appointment) {
@@ -305,9 +311,19 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "${appointment['contact']}",
-                        style: Theme.of(context).textTheme.bodyLarge,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            "${appointment['contact']} ",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          Text(" With "),
+                          Text(
+                            " ${appointment['from']}",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
                       ),
                       Text(
                         "${appointment['location']}",
@@ -324,6 +340,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -332,7 +349,43 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
         future: appointmentsByDay,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(4, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          width: 100,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10)
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10)
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            );
           }
 
           if (snapshot.hasError) {

@@ -20,26 +20,26 @@ class _ContactViewState extends State<ContactView> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Contact', style: TextStyle(color: Colors.white),),
+            Text('Contact', style: TextStyle(color: Colors.black54),),
             Row(
               children: [
                  IconButton(
               onPressed: (){
                 Navigator.of(context).pushNamed(AppRoutes.AddContactPage);
               },
-              icon: Icon(Icons.add, color: Colors.white,),
+              icon: Icon(Icons.add, color: Colors.black54,),
             ),
             IconButton(
               onPressed: (){
                 Navigator.pushNamed(context, AppRoutes.FriendsRequestPgae);
               },
-              icon: Icon(Icons.person_add_outlined, color: Colors.white,),
+              icon: Icon(Icons.person_add_outlined, color: Colors.black54,),
             )
               ],
             )
           ],
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
       ),
       backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       body: SingleChildScrollView(

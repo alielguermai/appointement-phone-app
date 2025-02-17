@@ -46,11 +46,10 @@ class _FavoriteContactsState extends State<FavoriteContacts> {
   void _toggleFavorite(Contact contact) {
     setState(() {
       if (favoriteContacts.any((c) => c.id == contact.id)) {
-        // Show a confirmation dialog before removing from favorites
         _showRemoveFavoriteDialog(contact);
       } else {
         favoriteContacts.add(contact);
-        _saveFavoriteContacts(); // Save changes
+        _saveFavoriteContacts();
       }
     });
   }
@@ -66,22 +65,22 @@ class _FavoriteContactsState extends State<FavoriteContacts> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: Colors.red, // Change to any color
-                foregroundColor: Colors.white, // Text color
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Optional: Adjust padding
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
               onPressed: () {
                 setState(() {
                   favoriteContacts.removeWhere((c) => c.id == contact.id);
-                  _saveFavoriteContacts(); // Save changes
+                  _saveFavoriteContacts();
                 });
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
               },
               child: const Text('Remove'),
             ),
@@ -147,14 +146,14 @@ class _FavoriteContactsState extends State<FavoriteContacts> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Favorite Contacts', style: TextStyle(color: Colors.white),),
+        title: const Text('Favorite Contacts', style: TextStyle(color: Colors.black54),),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.white,),
+            icon: const Icon(Icons.add, color: Colors.black54,),
             onPressed: _toggleContactsVisibility,
           ),
         ],
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
       ),
       body: Column(
         children: [

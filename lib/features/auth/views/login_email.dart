@@ -34,7 +34,10 @@ class _LoginEmailState extends State<LoginEmail> {
       if (userCredential.user != null) {
         if (mounted) {
           _showSuccess('Login successful!');
-          Navigator.pushReplacementNamed(context, AppRoutes.homePageRoute);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRoutes.homePageRoute,
+            (Route<dynamic> route) => false,
+          );
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -164,6 +167,7 @@ class _LoginEmailState extends State<LoginEmail> {
                   decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'Enter your email',
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -189,6 +193,7 @@ class _LoginEmailState extends State<LoginEmail> {
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: 'Enter your password',
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

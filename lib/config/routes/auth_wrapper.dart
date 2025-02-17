@@ -10,17 +10,17 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.active) {
-          // Check if the user is logged in
+
           final User? user = snapshot.data;
           if (user != null) {
-            // User is logged in, redirect to the home page
+
             return const HomePage();
           } else {
-            // User is not logged in, redirect to the landing page
+
             return const LandingPage();
           }
         }
-        // Show a loading indicator while checking the auth state
+
         return const CupertinoPageScaffold(
           child: Center(child: CupertinoActivityIndicator()),
         );

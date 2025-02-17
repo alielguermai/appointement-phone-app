@@ -25,7 +25,6 @@ class LandingPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Spacer(),
-                // App Logo or Image
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
@@ -39,7 +38,6 @@ class LandingPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Welcome Text
                 Text(
                   'Welcome',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -57,7 +55,6 @@ class LandingPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 48),
-                // Email Login Button
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(context).pushNamed(AppRoutes.LoginEmailPage);

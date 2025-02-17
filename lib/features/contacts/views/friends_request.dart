@@ -22,7 +22,6 @@ class _FriendsRequestState extends State<FriendsRequest> {
       if (snapshot.exists && snapshot.data()?['friendRequests'] != null) {
         List<String> friendIds = List<String>.from(snapshot.data()?['friendRequests']);
 
-        // Fetch user details for each friend ID
         List<Map<String, dynamic>> friendData = await Future.wait(
           friendIds.map((id) async {
             DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(id).get();

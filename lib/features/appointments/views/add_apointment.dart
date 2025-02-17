@@ -28,7 +28,9 @@ class AddAppointment extends StatefulWidget {
 
 class _AddAppointment extends State<AddAppointment> {
   final NotiService notiService = NotiService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    String? userName;
 
   final List<String> meetingTypes = [
     "Business Meeting",
@@ -217,6 +219,23 @@ class _AddAppointment extends State<AddAppointment> {
     );
   }
 
+  void loadUserData() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+
+      try {
+        DocumentSnapshot doc = await firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          setState(() {
+            userName = doc.get('name') ?? 'Test';
+          });
+        }
+      } catch (e) {
+        print("Error fetching user data: $e");
+      }
+    }
+  }
+
   void saveAppointmentToFirestore() async {
     try {
       final firestore = FirebaseFirestore.instance;
@@ -235,6 +254,7 @@ class _AddAppointment extends State<AddAppointment> {
         "id": uuid.v4(),
         "title": selectedMeetingType,
         "meetingType": selectedMeetingType,
+        "from": userName,
         "contact": selectedContact,
         "date": selectedDate,
         "time": selectedTime,
@@ -245,7 +265,6 @@ class _AddAppointment extends State<AddAppointment> {
         "userId": user.uid,
         'reminderPreference': _reminderPreference,
         'contactId': widget.id, 
-        'test': 'test'
       };
 
       await firestore.collection("appointments").add(appointmentData);
@@ -327,6 +346,7 @@ class _AddAppointment extends State<AddAppointment> {
     if (widget.contact != null){
       selectedContact = widget.contact!;
     }
+    loadUserData();
     fetchCategories();
   }
 

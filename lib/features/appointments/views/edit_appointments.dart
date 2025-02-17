@@ -268,7 +268,6 @@ class _EditAppointmentsState extends State<EditAppointments> {
         'isRead': false,
       });
 
-      // Success message
       _showSuccess("Appointment updated successfully!");
 
       await firestore.collection("appointments").doc(docId).update(updatedAppointmentData);
@@ -282,7 +281,6 @@ class _EditAppointmentsState extends State<EditAppointments> {
       */
 
     } catch (e) {
-      // Error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to update appointment: $e")),
       );

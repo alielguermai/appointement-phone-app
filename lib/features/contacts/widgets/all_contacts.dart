@@ -73,68 +73,67 @@ class _AllContactsState extends State<AllContacts> {
       alignment: Alignment.topLeft,
       child: contacts.isEmpty
           ? Center(
-        child: Text(
-          'No contacts found or permission denied.',
-          style: TextStyle(color: Colors.white),
-        ),
-      )
-          : Expanded(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: contacts.map((contact) {
-              return Container(
-                margin: EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    contact.photo != null
-                        ? CircleAvatar(
-                      backgroundImage: MemoryImage(contact.photo!),
-                      radius: 24,
-                    )
-                        : CircleAvatar(
-                      radius: 24,
-                      child: Text(
-                        contact.displayName.isNotEmpty
-                            ? contact.displayName[0].toUpperCase()
-                            : '',
+              child: Text(
+                'No contacts found or permission denied.',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: contacts.map((contact) {
+                    return Container(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          contact.photo != null
+                              ? CircleAvatar(
+                                  backgroundImage: MemoryImage(contact.photo!),
+                                  radius: 24,
+                                )
+                              : CircleAvatar(
+                                  radius: 24,
+                                  child: Text(
+                                    contact.displayName.isNotEmpty
+                                        ? contact.displayName[0].toUpperCase()
+                                        : '',
+                                  ),
+                                ),
+                          SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                contact.displayName.length > 20 
+                                    ? contact.displayName.substring(0, 10) + '...' 
+                                    : contact.displayName,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              Text(
+                                contact.phones.isNotEmpty
+                                    ? contact.phones.first.number
+                                    : 'No phone number',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddApointmentContact(
+                                      contact: contact.displayName),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.add),
+                          ),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          contact.displayName,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        Text(
-                          contact.phones.isNotEmpty
-                              ? contact.phones.first.number
-                              : 'No phone number',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    Spacer(), // Push the button to the end
-                    IconButton(
-                      onPressed: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AddApointmentContact(contact: contact.displayName),
-                          )
-                        );
-                      },
-                      icon: Icon(Icons.add),
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
     );
   }
 }

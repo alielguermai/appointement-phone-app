@@ -45,7 +45,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
       startOfWeek = startOfWeek.add(const Duration(days: 7));
       _lastNavigatedDate = startOfWeek;
     });
-    widget.onWeekNavigated?.call(_lastNavigatedDate); // Notify parent widget
+    widget.onWeekNavigated?.call(_lastNavigatedDate);
   }
 
   void _previousWeek() {
@@ -53,7 +53,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
       startOfWeek = startOfWeek.subtract(const Duration(days: 7));
       _lastNavigatedDate = startOfWeek;
     });
-    widget.onWeekNavigated?.call(_lastNavigatedDate); // Notify parent widget
+    widget.onWeekNavigated?.call(_lastNavigatedDate);
   }
 
   void _selectDate(DateTime date) {
@@ -93,8 +93,8 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: SizedBox(
-          width: 45,
-          height: 45,
+          width: 50,
+          height: 50,
           child: TextButton(
             onPressed: () => _selectDate(date),
             style: TextButton.styleFrom(
@@ -109,7 +109,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
             child: Text(
               '${date.day}',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                 color: isSelected ? Colors.white : isToday ? Colors.blue : Colors.black,
               ),

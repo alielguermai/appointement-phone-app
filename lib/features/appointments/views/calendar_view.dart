@@ -118,7 +118,7 @@ class _CalendarViewState extends State<CalendarView> {
             selectedDate: selectedDate,
             onWeekNavigated: (date) {
               setState(() {
-                _lastNavigatedDate = date; // Update the last navigated date
+                _lastNavigatedDate = date;
               });
             },
           ),
@@ -129,7 +129,7 @@ class _CalendarViewState extends State<CalendarView> {
                 children: [
                   //TodayAppointments(),
                   NextDaysAppointments(
-                    week: _lastNavigatedDate ?? selectedDate, // Pass the last navigated date or the default selected date
+                    week: _lastNavigatedDate ?? selectedDate,
                   ),
                 ],
               ),

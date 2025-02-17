@@ -2,6 +2,7 @@ import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({super.key});
@@ -11,57 +12,54 @@ class NotificationView extends StatefulWidget {
 }
 
 class _NotificationViewState extends State<NotificationView> {
-  // Get the current user ID
+
   final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
   Stream<List<Map<String, dynamic>>> fetchNotifications() {
-  final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
-  return FirebaseFirestore.instance
-      .collection('notifications')
-      .where('receiverId', isEqualTo: currentUserId)
-      .orderBy('timestamp', descending: true) // Order by timestamp to get the most recent first
-      .snapshots()
-      .asyncMap((snapshot) async {
-    List<Map<String, dynamic>> notifications = [];
+    return FirebaseFirestore.instance
+        .collection('notifications')
+        .where('receiverId', isEqualTo: currentUserId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<Map<String, dynamic>> notifications = [];
 
-    for (var doc in snapshot.docs) {
-      Map<String, dynamic> notification = doc.data() as Map<String, dynamic>;
-      notification['id'] = doc.id; // Add the document ID to the notification map
-      String senderId = notification['senderId'];
+      for (var doc in snapshot.docs) {
+        Map<String, dynamic> notification = doc.data() as Map<String, dynamic>;
+        notification['id'] = doc.id;
+        String senderId = notification['senderId'];
 
-      // Fetch sender details from the users collection
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(senderId)
-          .get();
 
-      if (userSnapshot.exists) {
-        Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
-        notification['senderName'] = userData['name'] ?? 'Unknown';
-        notification['senderProfilePic'] = userData['profilePic'] ?? '';
-      } else {
-        notification['senderName'] = 'Unknown';
-        notification['senderProfilePic'] = '';
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(senderId)
+            .get();
+
+        if (userSnapshot.exists) {
+          Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+          notification['senderName'] = userData['name'] ?? 'Unknown';
+          notification['senderProfilePic'] = userData['profilePic'] ?? '';
+        } else {
+          notification['senderName'] = 'Unknown';
+          notification['senderProfilePic'] = '';
+        }
+
+        notifications.add(notification);
       }
 
-      notifications.add(notification);
-    }
+      notifications.sort((a, b) {
+        if (a['isRead'] == b['isRead']) {
+          return b['timestamp'].compareTo(a['timestamp']);
+        } else {
+          return a['isRead'] ? 1 : -1;
+        }
+      });
 
-    // Sort notifications: isRead = false first, then isRead = true, both sorted by timestamp
-    notifications.sort((a, b) {
-      if (a['isRead'] == b['isRead']) {
-        // If both have the same isRead status, sort by timestamp (most recent first)
-        return b['timestamp'].compareTo(a['timestamp']);
-      } else {
-        // isRead = false comes before isRead = true
-        return a['isRead'] ? 1 : -1;
-      }
+      return notifications;
     });
-
-    return notifications;
-  });
-}
+  }
 
   void markNotificationAsRead(String notificationId) {
     FirebaseFirestore.instance
@@ -73,6 +71,56 @@ class _NotificationViewState extends State<NotificationView> {
     }).catchError((error) {
       print('Failed to mark notification as read: $error');
     });
+  }
+
+  void deleteNotification(String notificationId) {
+    FirebaseFirestore.instance.collection('notifications').doc(notificationId).delete();
+  }
+
+  Widget _buildShimmerPlaceholder() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: ListView.builder(
+        itemCount: 10,
+        itemBuilder: (context, index) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.grey[300],
+              ),
+              title: Container(
+                width: double.infinity,
+                height: 16,
+                color: Colors.grey[300],
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 12,
+                    color: Colors.grey[300],
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: double.infinity,
+                    height: 12,
+                    color: Colors.grey[300],
+                  ),
+                ],
+              ),
+              trailing: Container(
+                width: 24,
+                height: 24,
+                color: Colors.grey[300],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -90,20 +138,30 @@ class _NotificationViewState extends State<NotificationView> {
             stream: fetchNotifications(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return _buildShimmerPlaceholder();
               } else if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Center(child: Text('No notifications found.'));
               } else {
                 final notifications = snapshot.data!;
-                return Container(
-                  color: Colors.white,
-                  child: ListView.builder(
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      final notification = notifications[index];
-                      return Card(
+                return ListView.builder(
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return Dismissible(
+                      key: Key(notification['id']),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (direction) {
+                        deleteNotification(notification['id']);
+                      },
+                      child: Card(
                         color: Colors.white,
                         margin: const EdgeInsets.symmetric(vertical: 8),
                         child: ListTile(
@@ -133,9 +191,9 @@ class _NotificationViewState extends State<NotificationView> {
                             },
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 );
               }
             },
