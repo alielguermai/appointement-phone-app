@@ -1,7 +1,6 @@
 import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:appointement_phone_app/features/appointments/views/next_day_appointments.dart';
-import 'package:appointement_phone_app/features/appointments/views/today_appointements.dart';
-import 'package:appointement_phone_app/features/appointments/widgets/test.dart';
+import 'package:appointement_phone_app/features/appointments/widgets/CalenderWidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -89,20 +88,14 @@ class _CalendarViewState extends State<CalendarView> {
         ),
         backgroundColor: Colors.white,
         actions: [
-          TextButton(
+          IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed(AppRoutes.newAppointment);
             },
             style: ButtonStyle(
                 backgroundColor: WidgetStateColor.transparent
             ),
-            child: Text(
-              'Add',
-              style: TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.bold
-              ),
-            ),
+            icon: Icon(Icons.add, color: Colors.black54,)
           ),
           IconButton(
               onPressed: () {

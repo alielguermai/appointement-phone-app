@@ -118,19 +118,17 @@ class _AddContactState extends State<AddContact> {
 
     final receiverRef = FirebaseFirestore.instance.collection('users').doc(receiverId);
 
-    // Add the sender's ID to the receiver's friend requests
     await receiverRef.update({
       'friendRequests': FieldValue.arrayUnion([senderId])
     });
 
-    // Add a notification in the 'notifications' collection
     await FirebaseFirestore.instance.collection('notifications').add({
       'receiverId': receiverId,
       'senderId': senderId,
       'type': 'friend_request',
       'message': 'You have a new friend request!',
       'timestamp': FieldValue.serverTimestamp(),
-      'isRead': false, // You can use this to track unread notifications
+      'isRead': false,
     });
 
     ScaffoldMessenger.of(context).showSnackBar(

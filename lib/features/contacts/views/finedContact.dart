@@ -7,14 +7,14 @@ import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class ContactView extends StatefulWidget {
-  const ContactView({super.key});
+class Finedcontact extends StatefulWidget {
+  const Finedcontact({super.key});
 
   @override
-  State<ContactView> createState() => _ContactViewState();
+  State<Finedcontact> createState() => _Finedcontact();
 }
 
-class _ContactViewState extends State<ContactView> {
+class _Finedcontact extends State<Finedcontact> {
   SearchForContact searchForContact = SearchForContact();
   final TextEditingController phoneController = TextEditingController();
   QueryDocumentSnapshot? searchedUser;
@@ -50,21 +50,9 @@ class _ContactViewState extends State<ContactView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Contact"),
+        title: Text("Add Contact"),
         centerTitle: true,
         backgroundColor: Colors.white,
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.Finedcontact);
-                },
-                icon: Icon(Icons.add),
-              ),
-            ],
-          )
-        ],
       ),
       backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
@@ -114,54 +102,18 @@ class _ContactViewState extends State<ContactView> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
+                        icon: const Icon(Icons.add, color: Colors.green),
                         onPressed: (){
                           addContact(context);
                         },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: (){},
                       ),
                     ],
                   ),
                 )
               ),
-
-            Friends(),
           ],
         ),
       ),
     );
   }
 }
-
-
-/*
-
-Container(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              margin: EdgeInsets.all(10),
-              decoration: TAppTheme.lightBoxShadow,
-              child: SearchButton(),
-            ),
-            TextButton(
-              onPressed: (){
-                Navigator.pushNamed(context, AppRoutes.FriendsRequestPgae);
-              },
-              child: Icon(Icons.contacts),
-            ),
-            Friends(),
-            Expanded(
-              child: AllContacts(),
-            )
-          ],
-        ),
-      ),
-
-
-
-      */

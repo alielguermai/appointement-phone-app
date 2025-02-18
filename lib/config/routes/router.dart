@@ -8,6 +8,7 @@ import 'package:appointement_phone_app/features/auth/views/login_email.dart';
 import 'package:appointement_phone_app/features/auth/views/login_view.dart';
 import 'package:appointement_phone_app/features/auth/views/verification_view.dart';
 import 'package:appointement_phone_app/features/contacts/views/add_contact.dart';
+import 'package:appointement_phone_app/features/contacts/views/finedContact.dart';
 import 'package:appointement_phone_app/features/contacts/views/friends_request.dart';
 import 'package:appointement_phone_app/features/landingPage/landing_page.dart';
 import 'package:appointement_phone_app/features/notifications/views/notification_view.dart';
@@ -79,6 +80,11 @@ Route<dynamic> onGenerate(RouteSettings settings) {
     case AppRoutes.FriendsRequestPgae:
       return CupertinoPageRoute(
         builder: (_) => user != null ? FriendsRequest() : const LandingPage(),
+      );
+
+    case AppRoutes.Finedcontact:
+      return CupertinoPageRoute(
+        builder: (_) => user != null ? Finedcontact() : const LandingPage(),
       );
 
     default:

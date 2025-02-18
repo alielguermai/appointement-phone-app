@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:appointement_phone_app/config/routes/routes.dart';
+import 'package:appointement_phone_app/features/auth/views/ensureUserExists.dart';
 import 'package:appointement_phone_app/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,27 +41,29 @@ class _EditProfileState extends State<EditProfile> {
 
 
   Future<Map<String, dynamic>?> getUserData() async {
-  User? user = _auth.currentUser;
-  if (user != null) {
-    DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
-    if (doc.exists) {
-      return doc.data() as Map<String, dynamic>;
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
     }
+    return null;
   }
-  return null;
-}
 
 
   void loadUserData() async {
     Map<String, dynamic>? userData = await getUserData();
-    if (userData != null) {
+    User? user = _auth.currentUser;
+    if (user != null) {
       setState(() {
-        username = userData['name'] ?? '';
-        imageUrl = userData['imageUrl'];
-        phone_number = userData['phoneNumber'] ?? '';
+        username = userData?['name'] ?? '';
+        imageUrl = userData?['imageUrl'];
+        phone_number = user.phoneNumber ?? '';
       });
     }
   }
+
 
 
   Future<void> pickImage() async {
@@ -89,9 +92,15 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  void _checkedUser() async {
+    CheckedUser checkedUser = CheckedUser();
+    await checkedUser.ensureUserExists();
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkedUser();
     loadUserData();
   }
 
@@ -194,28 +203,7 @@ class _EditProfileState extends State<EditProfile> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Phone Number TextField
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Phone Number',
-                              hintText: phone_number.isNotEmpty ? phone_number : "Enter your phone number",
-                              floatingLabelBehavior: FloatingLabelBehavior.never,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              prefixIcon: const Icon(Icons.phone_outlined),
-                            ),
-                            onChanged: (value) => setState(() => phone_number = value),
-                          ),
-                        ),
+                        
                         const SizedBox(height: 40),
 
                         // Update Button
@@ -227,7 +215,7 @@ class _EditProfileState extends State<EditProfile> {
                                 const SnackBar(content: Text('Profile Updated Successfully!')),
                               );
                               Navigator.of(context).pushNamedAndRemoveUntil(
-                                AppRoutes.editProfilePage,
+                                AppRoutes.homePageRoute,
                                     (Route<dynamic> route) => false,
                               );
                             } else {

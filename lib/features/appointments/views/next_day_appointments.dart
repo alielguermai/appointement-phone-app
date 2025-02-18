@@ -2,6 +2,7 @@ import 'package:appointement_phone_app/config/routes/routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -91,6 +92,12 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     }
   }
 
+  String get _userId{
+    final currentuser = FirebaseAuth.instance.currentUser;
+    if (currentuser == null) throw Exception("User not logged in");
+    return currentuser.uid;
+  }
+
   Future<Map<String, List<Map<String, dynamic>>>> fetchAppointmentsForMultipleDays() async {
     try {
       final firestore = FirebaseFirestore.instance;
@@ -101,7 +108,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
         return {};
       }
 
-      String currentUserId = currentUser.uid;
+      String currentUserId = _userId;
       Map<String, List<Map<String, dynamic>>> results = {};
 
       for (int i = 0; i < dbDates.length; i++) {
@@ -188,14 +195,34 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     }
   }
 
+  void updatedAppointment(String docId) async {
+    if (docId.isEmpty){
+      print("Error: Document ID is empty");
+      return;
+    }
+
+    final UpdateData = {
+      "status" : "Canceld",
+      "UpdatedAt": FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await FirebaseFirestore.instance.collection("appointments").doc(docId).update(UpdateData);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to cancel appointment: $e"))
+      );
+    }
+  }
+
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'scheduled':
-        return Colors.blue;
+        return const Color.fromARGB(255, 6, 101, 104);
       case 'completed':
-        return Colors.green;
+        return const Color.fromARGB(255, 40, 87, 168);
       case 'in progress':
-        return Colors.orange;
+        return const Color.fromARGB(255, 112, 69, 4);
       default:
         return Colors.grey;
     }
@@ -212,24 +239,106 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
     );
   }
 
+  void updatedAppointmentArg(BuildContext context, String docId, String status) async {
+    if (docId.isEmpty) {
+      print("Error: Document ID is empty");
+      return;
+    }
+
+    final UpdateData = {
+      "status": status,
+      "UpdatedAt": FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await FirebaseFirestore.instance.collection("appointments").doc(docId).update(UpdateData);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to cancel appointment: $e"))
+      );
+    }
+  }
+  
+  Future<void> _showDialog(String docId) async {
+    return showDialog(
+      context: context, 
+      builder: (context) => Center(
+        
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () {},
+              child: Text('Cancel'),
+            ),
+            Text("Center test")
+          ],
+        )
+      )
+    );
+  }
+  
+  
+
   Widget buildAppointmentCard(Map<String, dynamic> appointment) {
   final appointmentColor = getStatusColor(appointment["status"]);
 
-  return Dismissible(
-      key: Key(appointment["docId"]),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+  return Slidable(
+      key: Key(appointment["docId"]),  
+
+      startActionPane: ActionPane(
+        motion: const ScrollMotion(),
+
+        dismissible: DismissiblePane(onDismissed: () {}),
+
+
+        children: [
+          SlidableAction(
+            onPressed: (BuildContext context){
+               updatedAppointment(appointment["docId"]);
+            },
+            backgroundColor: Color.fromARGB(255, 52, 139, 25),
+            foregroundColor: Colors.white,
+            icon: Icons.done,
+            label: 'Accecpt',
+          ),
+          SlidableAction(
+            onPressed: (BuildContext context){},
+            backgroundColor: Color.fromARGB(255, 143, 39, 13),
+            foregroundColor: Colors.white,
+            icon: Icons.cancel,
+            label: 'Canceld',
+          ),
+        ],
       ),
-      onDismissed: (direction) {
-        deleteAppointment(appointment["docId"]);
-      },
+
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        dismissible: DismissiblePane(onDismissed: () {}),
+        children: [
+          /*
+          SlidableAction(
+            //flex: 2,
+            onPressed: (BuildContext context){},
+            backgroundColor: const Color(0xFF7BC043),
+            foregroundColor: Colors.white,
+            icon: Icons.archive,
+            label: 'Archive',
+          ),
+          */
+          SlidableAction(
+            onPressed: (BuildContext context){},
+            backgroundColor: Color.fromARGB(255, 238, 2, 2),
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+        ],
+      ),
       child: Container(
         width: double.infinity,
-        margin: const EdgeInsets.symmetric(vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -241,39 +350,64 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                   topLeft: Radius.circular(8),
                 ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "${appointment["time"]} ",
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      if(_userId == appointment["userId"])
+                      Icon(Icons.call_made_sharp, size: 15, color: Colors.white,)
+                      else
+                        Icon(Icons.call_received_outlined, size: 15, color: Colors.white,),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "${appointment["time"]} ",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     children: [
-                      Text(
-                        "${appointment["status"]}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.editAppointment,
-                            arguments: appointment["docId"],
-                          );
+                        onTap: (){
+                          _showDialog(appointment["docId"]);
                         },
-                        child: const Icon(Icons.edit, size: 15, color: Colors.white),
+                        child: Row(
+                          children: [
+                            Text(
+                              "${appointment["status"]}",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Icon(Icons.keyboard_arrow_down_outlined, color: Colors.white,),
+                          ],
+                        )
                       ),
+                      /*
+                      const SizedBox(width: 10),
+                      if(_userId == appointment["userId"])
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.editAppointment,
+                              arguments: appointment["docId"],
+                            );
+                          },
+                          child: const Icon(Icons.edit, size: 15, color: Colors.white),
+                        ),
+                        */
                     ],
                   ),
                 ],
@@ -287,7 +421,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                   bottomLeft: Radius.circular(5),
                 ),
               ),
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(5),
               width: double.infinity,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,37 +432,36 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                       Text(
                         "${appointment['title']}",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         "${appointment['date']}",
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        "${appointment['contact']} ",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "${appointment['contact']} ",
-                            style: Theme.of(context).textTheme.bodyLarge,
+                            "Organiser ${appointment['from']}",
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
-                          Text(" With "),
                           Text(
-                            " ${appointment['from']}",
-                            style: Theme.of(context).textTheme.bodyLarge,
+                            "${appointment['location']}",
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
-                      ),
-                      Text(
-                        "${appointment['location']}",
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                      )
                     ],
                   ),
                 ],
@@ -402,6 +535,7 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
               margin: const EdgeInsets.only(left: 10, top: 5),
               child: const Text(
                 "No appointments found.",
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -434,9 +568,15 @@ class _NextDaysAppointmentsState extends State<NextDaysAppointments> {
                   ),
                   if (appointments.isEmpty)
                     Container(
-                      margin: const EdgeInsets.only(left: 10, top: 5),
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(24, 33, 149, 243),
+                        borderRadius: BorderRadius.circular(5)
+                      ),
+                      margin: const EdgeInsets.only(left: 0, top: 5),
                       width: double.infinity,
                       child: const Text(
+                        textAlign: TextAlign.center,
                         "No appointments found.",
                         style: TextStyle(
                           fontSize: 14,

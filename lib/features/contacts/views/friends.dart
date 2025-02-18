@@ -56,7 +56,14 @@ class _FriendsState extends State<Friends> {
           return const Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text("No Contacts"));
+          return const Center(
+            child: Column(
+              children: [
+                Icon(Icons.contacts_rounded, size: 100,),
+                Text('No Contacts found'),
+              ],
+            ),
+          );
         }
 
         return SingleChildScrollView(

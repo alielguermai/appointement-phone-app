@@ -1,4 +1,3 @@
-/*
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -80,7 +79,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
       child: Center(
         child: Text(
           day,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
         ),
       ),
     );
@@ -92,10 +91,10 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 1.0),
         child: SizedBox(
-          width: 50,
-          height: 50,
+          width: 35,
+          height: 35,
           child: TextButton(
             onPressed: () => _selectDate(date),
             style: TextButton.styleFrom(
@@ -109,8 +108,9 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
             ),
             child: Text(
               '${date.day}',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 12,
                 fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                 color: isSelected ? Colors.white : isToday ? Colors.blue : Colors.black,
               ),
@@ -123,7 +123,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
 
   Widget _buildMonthYearHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -134,7 +134,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
           ),
           Text(
             DateFormat('MMMM yyyy').format(_selectedDate),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
@@ -151,7 +151,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
     final weekDays = List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -185,7 +185,7 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
           ),
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 5.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: weekDays.map((date) => _buildDateButton(date)).toList(),
@@ -197,4 +197,3 @@ class _WeekCalendarPageState extends State<WeekCalendarPage> {
     );
   }
 }
-*/

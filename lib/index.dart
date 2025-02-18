@@ -67,8 +67,10 @@ class _HomePageState extends State<HomePage> {
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         showSelectedLabels: true,
-        selectedIconTheme: IconThemeData(size: 26),
-        unselectedIconTheme: IconThemeData(size: 26),
+        selectedLabelStyle: TextStyle(fontSize: 10),
+        unselectedLabelStyle: TextStyle(fontSize: 10),
+        selectedIconTheme: IconThemeData(size: 20),
+        unselectedIconTheme: IconThemeData(size: 20),
         backgroundColor: TAppTheme.lightTheme.scaffoldBackgroundColor,
       ),
     );

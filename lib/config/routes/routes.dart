@@ -11,4 +11,5 @@ class AppRoutes {
   static const String AddContactPage = '/addContact';
   static const String LoginEmailPage = '/emailLoginPage';
   static const String FriendsRequestPgae = '/friendsRequest';
+  static const String Finedcontact = '/findContact';
 }
